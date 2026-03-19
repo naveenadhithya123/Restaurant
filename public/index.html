@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Royal Restaurant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-inner">
+    <div class="loader-logo">𝓡</div>
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════╗
+     ║  FULL-PAGE DASHBOARD (hidden until 3-dot)   ║
+     ╚══════════════════════════════════════════════╝ -->
+<div id="dashboardPage" class="dashboard-page" style="display:none">
+
+  <!-- LEFT NAV — always visible inside dashboard -->
+  <nav class="dash-nav">
+    <div class="dash-nav-top">
+      <div class="dash-brand">
+        <span class="dash-brand-icon">✦</span>
+        <div>
+          <span class="dash-brand-name">Dashboard</span>
+          <span class="dash-brand-sub">Manager Panel</span>
+        </div>
+      </div>
+
+      <div class="dash-nav-links">
+        <button class="dash-nav-btn active" data-page="billing" onclick="switchDashPage('billing')">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <span>Billing</span>
+          <span class="dash-nav-badge" id="dashCartBadge"></span>
+        </button>
+        <button class="dash-nav-btn" data-page="database" onclick="switchDashPage('database')">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <span>Database</span>
+        </button>
+        <button class="dash-nav-btn" data-page="analytics" onclick="switchDashPage('analytics')">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Analytics</span>
+        </button>
+        <button class="dash-nav-btn" data-page="branding" onclick="switchDashPage('branding')">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <span>Branding</span>
+        </button>
+        <button class="dash-nav-btn" data-page="settings" onclick="switchDashPage('settings')">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Settings</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="dash-nav-bottom">
+      <div class="dash-live-stats">
+        <div class="dash-stat"><span id="dn-menu">0</span><label>Menu</label></div>
+        <div class="dash-stat"><span id="dn-cart">0</span><label>Cart</label></div>
+        <div class="dash-stat"><span id="dn-today">0</span><label>Bills</label></div>
+      </div>
+      <button class="dash-back-btn" onclick="closeDashboard()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Restaurant
+      </button>
+    </div>
+  </nav>
+
+  <!-- RIGHT CONTENT — changes per section -->
+  <div class="dash-content">
+
+    <!-- ── BILLING PAGE ── -->
+    <div class="dash-page active" id="dp-billing">
+      <div class="dash-page-header">
+        <h1 class="dash-page-title">Billing</h1>
+        <p class="dash-page-sub">Manage orders and generate receipts</p>
+      </div>
+
+      <div class="billing-layout">
+        <!-- Menu Grid -->
+        <div class="billing-menu-area">
+          <div class="billing-menu-toolbar">
+            <div class="billing-search-wrap">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="dashSearch" class="billing-search" placeholder="Search menu…" oninput="dashSearchProducts(this.value)">
+            </div>
+            <button class="dash-add-btn" onclick="openModal('addModal')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Item
+            </button>
+          </div>
+          <div id="dashProducts" class="dash-products-grid"></div>
+        </div>
+
+        <!-- Order Panel -->
+        <div class="billing-order-panel">
+          <div class="bop-header">
+            <h2 class="bop-title">Order Summary</h2>
+            <button class="bop-clear" onclick="clearCart()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+              Clear
+            </button>
+          </div>
+          <div class="bop-divider"></div>
+          <div id="dashOrders" class="bop-order-list">
+            <div class="bop-empty">
+              <div style="font-size:32px;opacity:.3">🍽</div>
+              <p>No items yet</p>
+              <span>Click a dish to add</span>
+            </div>
+          </div>
+          <div class="bop-divider"></div>
+          <div class="bop-totals">
+            <div class="bop-row"><span>Subtotal</span><span><span class="cur">₹</span><span id="dSubtotal">0</span></span></div>
+            <div class="bop-row tax"><span>Tax (<span id="dTaxLabel">5</span>%)</span><span><span class="cur">₹</span><span id="dTaxAmt">0</span></span></div>
+            <div class="bop-row grand"><span>Total</span><span><span class="cur">₹</span><span id="dTotal">0</span></span></div>
+          </div>
+          <button class="bop-receipt-btn" onclick="showReceipt()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Generate Receipt
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DATABASE PAGE ── -->
+    <div class="dash-page" id="dp-database">
+      <div class="dash-page-header">
+        <h1 class="dash-page-title">Database</h1>
+        <p class="dash-page-sub">All bills and monthly summaries</p>
+        <span class="dash-month-pill" id="dbMonthTotal">This month: ₹0</span>
+      </div>
+      <div class="dash-db-body" id="dbContainer">
+        <div class="db-empty">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:.3;margin:0 auto 12px;display:block"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <p>No bills yet</p>
+          <span>Bills appear here after printing</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS PAGE ── -->
+    <div class="dash-page" id="dp-analytics">
+      <div class="dash-page-header">
+        <h1 class="dash-page-title">Analytics</h1>
+        <p class="dash-page-sub">Revenue and performance insights</p>
+      </div>
+      <div class="analytics-grid">
+        <div class="chart-card wide">
+          <h3 class="chart-title">Monthly Revenue</h3>
+          <div class="chart-box"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">Top Dishes Sold</h3>
+          <div class="chart-box"><canvas id="dishChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">Daily Bills — This Month</h3>
+          <div class="chart-box"><canvas id="dailyChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BRANDING PAGE ── -->
+    <div class="dash-page" id="dp-branding">
+      <div class="dash-page-header">
+        <h1 class="dash-page-title">Branding</h1>
+        <p class="dash-page-sub">Customise your restaurant identity</p>
+      </div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3 class="settings-card-title">Hero Title</h3>
+          <div class="sf-two-col">
+            <div class="sf-field"><label>Line 1 (e.g. Royal)</label><input id="br-line1" placeholder="Royal" oninput="applyBranding()"></div>
+            <div class="sf-field"><label>Line 2 (italic gold)</label><input id="br-line2" placeholder="Restaurant" oninput="applyBranding()"></div>
+          </div>
+          <div class="sf-field"><label>Hero Welcome Text</label><input id="br-hero-label" placeholder="Welcome to" oninput="applyBranding()"></div>
+          <div class="sf-field"><label>Hero Subtitle</label><input id="br-hero-sub" placeholder="Taste the tradition. Feel the luxury." oninput="applyBranding()"></div>
+          <div class="sf-field"><label>Menu Subtitle</label><input id="br-menu-sub" placeholder="Fresh ingredients, timeless recipes" oninput="applyBranding()"></div>
+        </div>
+        <div class="settings-card">
+          <h3 class="settings-card-title">Contact & Receipt</h3>
+          <div class="sf-field"><label>Header Tagline</label><input id="br-tagline" placeholder="Fine Dining Experience" oninput="applyBranding()"></div>
+          <div class="sf-field"><label>Address</label><input id="br-address" placeholder="123 Palace Road, Chennai — 600001" oninput="applyBranding()"></div>
+          <div class="sf-field"><label>Phone Number</label><input id="br-phone" placeholder="+91 98765 43210" oninput="applyBranding()"></div>
+          <div class="sf-field"><label>Receipt Thank You Message</label><input id="br-thanks" placeholder="Thank you for dining with us!" oninput="applyBranding()"></div>
+          <div class="sf-field"><label>Manager Email (for password reset)</label><input id="br-email" type="email" placeholder="manager@gmail.com" oninput="saveMgrEmail()"></div>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button class="sa-save" onclick="saveBranding()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          Save Branding
+        </button>
+        <button class="sa-reset" onclick="resetBranding()">Reset to Default</button>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS PAGE ── -->
+    <div class="dash-page" id="dp-settings">
+      <div class="dash-page-header">
+        <h1 class="dash-page-title">Settings</h1>
+        <p class="dash-page-sub">Appearance, billing and account preferences</p>
+      </div>
+      <div class="settings-grid">
+
+        <div class="settings-card">
+          <h3 class="settings-card-title">Theme</h3>
+          <div class="theme-grid">
+            <button class="theme-tile active" id="tile-dark"    onclick="setTheme('dark')"><span class="tile-swatch dark-swatch"></span>Dark</button>
+            <button class="theme-tile"        id="tile-light"   onclick="setTheme('light')"><span class="tile-swatch light-swatch"></span>Light</button>
+            <button class="theme-tile"        id="tile-crimson" onclick="setTheme('crimson')"><span class="tile-swatch crimson-swatch"></span>Crimson</button>
+            <button class="theme-tile"        id="tile-ocean"   onclick="setTheme('ocean')"><span class="tile-swatch ocean-swatch"></span>Ocean</button>
+          </div>
+          <h3 class="settings-card-title" style="margin-top:20px">Card Layout</h3>
+          <div class="seg-ctrl">
+            <button class="seg-btn active" id="btnGrid"    onclick="setLayout('grid')">Grid</button>
+            <button class="seg-btn"        id="btnCompact" onclick="setLayout('compact')">Compact</button>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h3 class="settings-card-title">Billing</h3>
+          <div class="sf-field">
+            <label>Tax Rate</label>
+            <div class="range-row">
+              <input type="range" id="taxRate" min="0" max="20" step="1" value="5" oninput="updateTaxLabel(this.value)">
+              <span class="range-val" id="taxRateVal">5%</span>
+            </div>
+          </div>
+          <div class="sf-field">
+            <label>Currency</label>
+            <div class="currency-opts">
+              <button class="currency-btn active" onclick="setCurrency('₹',this)">₹ INR</button>
+              <button class="currency-btn" onclick="setCurrency('$',this)">$ USD</button>
+              <button class="currency-btn" onclick="setCurrency('€',this)">€ EUR</button>
+              <button class="currency-btn" onclick="setCurrency('£',this)">£ GBP</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h3 class="settings-card-title">Preferences</h3>
+          <div class="pref-row">
+            <div><span class="pref-label">Auto-clear cart after bill</span><span class="pref-sub">Clear order once receipt is printed</span></div>
+            <label class="toggle-switch"><input type="checkbox" id="pref-autoclear"><span class="toggle-knob"></span></label>
+          </div>
+          <div class="pref-row">
+            <div><span class="pref-label">Show count badge in header</span><span class="pref-sub">Live count display</span></div>
+            <label class="toggle-switch"><input type="checkbox" id="pref-badge" checked><span class="toggle-knob"></span></label>
+          </div>
+          <div class="pref-row">
+            <div><span class="pref-label">Confirm before delete</span><span class="pref-sub">Ask before removing menu items</span></div>
+            <label class="toggle-switch"><input type="checkbox" id="pref-confirm" checked><span class="toggle-knob"></span></label>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h3 class="settings-card-title">Manager Credentials</h3>
+          <div class="sf-field"><label>Username</label><input id="mgr-username" placeholder="admin" autocomplete="off"></div>
+          <div class="sf-field"><label>New Password</label><input id="mgr-password" type="password" placeholder="••••••••"></div>
+          <button class="sa-save" style="margin-top:8px" onclick="saveCredentials()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Update Credentials
+          </button>
+        </div>
+
+      </div>
+      <div class="settings-actions">
+        <button class="sa-save" onclick="saveSettings()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          Save All Settings
+        </button>
+      </div>
+    </div>
+
+  </div><!-- end dash-content -->
+</div>
+<!-- ╚══════════════════════════════════════════════╝ -->
+
+
+<!-- ╔══════════════════════════════════════════════╗
+     ║  RESTAURANT PAGE (main site)                ║
+     ╚══════════════════════════════════════════════╝ -->
+<div id="restaurantPage">
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <button class="sidebar-trigger" id="sidebarTrigger" onclick="openDashboard()" style="display:none" title="Open Dashboard">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="brand">
+          <span class="brand-icon">✦</span>
+          <div>
+            <h1 class="brand-name" id="headerBrandName">Royal Restaurant</h1>
+            <p class="brand-tagline" id="headerTagline">Fine Dining Experience</p>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="count-badge user-badge" id="userMenuBadge">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 2h18l-2 13H5L3 2z"/></svg>
+          <span id="menuItemCount">0</span> dishes
+        </div>
+        <div class="count-badge manager-badge" id="cartBadge" style="display:none">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span id="cartCount">0</span> in cart
+        </div>
+        <button class="menu-trigger" id="menuBtn">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="dropdown" id="dropdown">
+          <div class="dropdown-header">Options</div>
+          <span class="dropdown-item" id="menuAction">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Manager Login
+          </span>
+          <span class="dropdown-item" onclick="openUserSettings();closeDropdown()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <p class="hero-label" id="heroLabel">Welcome to</p>
+      <h2 class="hero-title" id="heroTitle">
+        <span id="heroLine1">Royal</span><br id="heroTitleBr"><em id="heroLine2">Restaurant</em>
+      </h2>
+      <p class="hero-sub" id="heroSub">Taste the tradition. Feel the luxury.</p>
+    </div>
+    <div class="hero-scroll"><span>Scroll to explore</span><div class="scroll-arrow"></div></div>
+  </section>
+
+  <!-- SEARCH -->
+  <div class="search-section">
+    <div class="search-wrap">
+      <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="search" class="search-input" placeholder="Search our menu…" autocomplete="off">
+      <span class="search-clear" id="searchClear">✕</span>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <main class="main-layout" id="mainLayout">
+    <section class="menu-section">
+      <div class="section-header">
+        <h2 class="section-title">Our Menu</h2>
+        <p class="section-sub" id="menuSubtitle">Fresh ingredients, timeless recipes</p>
+        <div class="title-line"></div>
+      </div>
+      <div id="products" class="products-grid"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand" id="footerBrand">✦ Royal Restaurant</div>
+    <p id="footerCopy">© 2025 Royal Restaurant. All rights reserved.</p>
+  </footer>
+
+</div><!-- end restaurantPage -->
+
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- LOGIN -->
+<div id="loginModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon">🔐</div>
+    <h2 class="modal-title">Manager Access</h2>
+    <p class="modal-sub">Enter your credentials to continue</p>
+    <div class="input-group"><label>Username</label>
+      <input id="username" placeholder="admin" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('password').focus()">
+    </div>
+    <div class="input-group"><label>Password</label>
+      <input id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <div id="loginError" class="error-msg" style="display:none">Incorrect credentials. Try again.</div>
+    <div style="text-align:right;margin-bottom:16px">
+      <span class="forgot-link" onclick="openForgotPassword()">Forgot password?</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="login()">Login</button>
+      <button class="btn-ghost" onclick="closeLogin()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PRODUCT -->
+<div id="addModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon">➕</div>
+    <h2 class="modal-title">Add Menu Item</h2>
+    <p class="modal-sub">Fill in the details below</p>
+    <div class="input-group"><label>Dish Name</label>
+      <input id="foodName" placeholder="e.g. Masala Dosa" onkeydown="if(event.key==='Enter')document.getElementById('foodPrice').focus()">
+    </div>
+    <div class="input-group"><label>Price</label>
+      <input id="foodPrice" type="number" placeholder="e.g. 120" onkeydown="if(event.key==='Enter')document.getElementById('foodImageFile').click()">
+    </div>
+    <div class="input-group">
+      <label>Photo</label>
+      <div class="img-upload-wrap" onclick="document.getElementById('foodImageFile').click()">
+        <input type="file" id="foodImageFile" accept="image/*" style="display:none" onchange="previewImage(event)">
+        <div id="imgUploadPlaceholder" class="img-upload-placeholder">
+          <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Click to upload photo</span>
+          <small>JPG, PNG, WEBP from your computer</small>
+        </div>
+        <img id="imgPreview" src="" alt="Preview" style="display:none;width:100%;height:150px;object-fit:cover;border-radius:10px">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="addProduct()">Add Item</button>
+      <button class="btn-ghost" onclick="closeAdd()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPT -->
+<div id="receiptModal" class="modal-overlay">
+  <div class="modal-card receipt-card">
+    <div id="billCapture">
+      <div class="receipt-header">
+        <div class="receipt-logo">✦</div>
+        <h2 class="receipt-name" id="billRestName">Royal Restaurant</h2>
+        <p class="receipt-address" id="billAddress">123 Palace Road, Chennai — 600001</p>
+        <p class="receipt-address" id="billPhone">📞 +91 98765 43210</p>
+      </div>
+      <div class="receipt-meta">
+        <div class="receipt-meta-item"><span>Bill No.</span><strong id="billNo">#0001</strong></div>
+        <div class="receipt-meta-item"><span>Date &amp; Time</span><strong id="billTime"></strong></div>
+        <div class="receipt-meta-item"><span>Cashier</span><strong>Manager</strong></div>
+      </div>
+      <div class="receipt-divider"><span>ORDER DETAILS</span></div>
+      <div class="receipt-items-head"><span>Item</span><span>Qty</span><span>Rate</span><span>Amount</span></div>
+      <div id="billItems" class="bill-items"></div>
+      <div class="receipt-divider"></div>
+      <div class="bill-totals">
+        <div class="bill-total-row"><span>Subtotal</span><span id="billSubtotal"></span></div>
+        <div class="bill-total-row"><span>Tax (<span id="billTaxLabel">5</span>%)</span><span id="billTax"></span></div>
+        <div class="bill-total-row grand-total"><span>GRAND TOTAL</span><span id="billTotal"></span></div>
+      </div>
+      <div class="receipt-footer">
+        <p id="billThanks">Thank you for dining with us!</p>
+        <p>Visit us again ✦</p>
+        <div class="receipt-barcode"><div class="barcode-lines"></div></div>
+      </div>
+    </div>
+    <div class="receipt-actions">
+      <button class="btn-gold" onclick="printBillAsImage()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print Bill
+      </button>
+      <button class="btn-outline" onclick="closeReceipt()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- BILL IMAGE PREVIEW -->
+<div id="billImageModal" class="modal-overlay">
+  <div class="modal-card bill-image-card">
+    <h2 class="modal-title">Bill Preview</h2>
+    <p class="modal-sub">Your bill has been generated as an image</p>
+    <div class="bill-image-wrap"><img id="billImage" src="" alt="Bill"></div>
+    <div class="modal-actions">
+      <button class="btn-gold" onclick="downloadBillImage()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Image
+      </button>
+      <button class="btn-ghost" onclick="closeBillImage()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- USER SETTINGS -->
+<div id="userSettingsModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:380px">
+    <h2 class="modal-title">Settings</h2>
+    <p class="modal-sub">Choose your preferred appearance</p>
+    <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:12px">Theme</p>
+    <div class="theme-grid">
+      <button class="theme-tile" id="utile-dark"    onclick="setUserTheme('dark')"><span class="tile-swatch dark-swatch"></span>Dark</button>
+      <button class="theme-tile" id="utile-light"   onclick="setUserTheme('light')"><span class="tile-swatch light-swatch"></span>Light</button>
+      <button class="theme-tile" id="utile-crimson" onclick="setUserTheme('crimson')"><span class="tile-swatch crimson-swatch"></span>Crimson</button>
+      <button class="theme-tile" id="utile-ocean"   onclick="setUserTheme('ocean')"><span class="tile-swatch ocean-swatch"></span>Ocean</button>
+    </div>
+    <button class="btn-ghost" style="width:100%;margin-top:20px" onclick="closeModal('userSettingsModal')">Close</button>
+  </div>
+</div>
+
+
+<!-- FORGOT PASSWORD — STEP 1: Enter email & send OTP -->
+<div id="forgotModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-icon">📧</div>
+    <h2 class="modal-title">Reset Password</h2>
+    <p class="modal-sub">We'll send a 6-digit OTP to your registered manager email.</p>
+    <div class="input-group">
+      <label>Manager Email</label>
+      <input id="forgotEmailDisplay" type="text" readonly style="cursor:default;opacity:.75;background:var(--bg-input)" tabindex="-1">
+    </div>
+    <div id="forgotError" class="error-msg" style="display:none">Something went wrong. Please try again.</div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+      <button class="btn-ghost" onclick="closeModal('forgotModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD — STEP 2: Enter OTP -->
+<div id="otpModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-icon">🔢</div>
+    <h2 class="modal-title">Enter OTP</h2>
+    <p class="modal-sub" id="otpSentTo">OTP sent to your email. Valid for 10 minutes.</p>
+    <div class="otp-input-row">
+      <input class="otp-box" maxlength="1" oninput="otpBoxInput(this,0)" onkeydown="otpBoxKey(event,0)" id="otp0">
+      <input class="otp-box" maxlength="1" oninput="otpBoxInput(this,1)" onkeydown="otpBoxKey(event,1)" id="otp1">
+      <input class="otp-box" maxlength="1" oninput="otpBoxInput(this,2)" onkeydown="otpBoxKey(event,2)" id="otp2">
+      <input class="otp-box" maxlength="1" oninput="otpBoxInput(this,3)" onkeydown="otpBoxKey(event,3)" id="otp3">
+    </div>
+    <div id="otpError" class="error-msg" style="display:none">Incorrect OTP. Please try again.</div>
+    <div style="text-align:center;margin-bottom:12px">
+      <span class="forgot-link" onclick="sendOTP()">Resend OTP</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="verifyOTP()">Verify OTP</button>
+      <button class="btn-ghost" onclick="closeModal('otpModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD — STEP 3: Set new password -->
+<div id="resetPassModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-icon">🔑</div>
+    <h2 class="modal-title">Set New Password</h2>
+    <p class="modal-sub">OTP verified! Enter your new password below.</p>
+    <div class="input-group">
+      <label>New Password</label>
+      <input id="newPass1" type="password" placeholder="New password" onkeydown="if(event.key==='Enter')document.getElementById('newPass2').focus()">
+    </div>
+    <div class="input-group">
+      <label>Confirm Password</label>
+      <input id="newPass2" type="password" placeholder="Confirm password" onkeydown="if(event.key==='Enter')resetPassword()">
+    </div>
+    <div id="resetPassError" class="error-msg" style="display:none">Passwords do not match.</div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="resetPassword()">Update Password</button>
+      <button class="btn-ghost" onclick="closeModal('resetPassModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- EDIT PRODUCT MODAL -->
+<div id="editModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon">✎</div>
+    <h2 class="modal-title">Edit Menu Item</h2>
+    <p class="modal-sub">Update the details below</p>
+    <div class="input-group">
+      <label>Dish Name</label>
+      <input id="editFoodName" placeholder="e.g. Masala Dosa" onkeydown="if(event.key==='Enter')document.getElementById('editFoodPrice').focus()">
+    </div>
+    <div class="input-group">
+      <label>Price</label>
+      <input id="editFoodPrice" type="number" placeholder="e.g. 120" onkeydown="if(event.key==='Enter')saveEditProduct()">
+    </div>
+    <div class="input-group">
+      <label>Photo</label>
+      <div class="img-upload-wrap" onclick="document.getElementById('editImageFile').click()">
+        <input type="file" id="editImageFile" accept="image/*" style="display:none" onchange="editPreviewImage(event)">
+        <div id="editImgPlaceholder" class="img-upload-placeholder">
+          <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Click to change photo</span>
+          <small>JPG, PNG, WEBP from your computer</small>
+        </div>
+        <img id="editImgPreview" src="" alt="Preview" style="display:none;width:100%;height:150px;object-fit:cover;border-radius:10px">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveEditProduct()">Save Changes</button>
+      <button class="btn-ghost"   onclick="closeEdit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="supabase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
