@@ -465,22 +465,24 @@ async function printBillAsImage(){
   showToast('Generating bill…','')
   try{
     const canvas = await html2canvas(document.getElementById('billCapture'),{backgroundColor:'#f8f4ec',scale:2,useCORS:true,logging:false})
+    const dataUrl = canvas.toDataURL('image/png')
     
     // Download automatically
     const link = document.createElement('a')
     link.download = `bill-${document.getElementById('billNo').textContent}.png`
-    link.href = canvas.toDataURL('image/png')
+    link.href = dataUrl
     link.click()
     
-    // Print directly
-    const img = new Image()
-    img.src = canvas.toDataURL('image/png')
-    const w = window.open('')
-    w.document.write(`<img src="${img.src}" style="width:100%">`)
-    w.document.close()
-    w.focus()
-    w.print()
-    w.close()
+    // Print - inject image into page and print
+    const printDiv = document.createElement('div')
+    printDiv.id = 'printArea'
+    printDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:99999;background:white;text-align:center'
+    printDiv.innerHTML = `<img src="${dataUrl}" style="width:80mm">`
+    document.body.appendChild(printDiv)
+    
+    window.print()
+    
+    document.body.removeChild(printDiv)
     
   } catch(err){
     showToast('Failed','error')
@@ -703,6 +705,15 @@ document.addEventListener('keydown',e=>{
     closeModal('billImageModal'); closeModal('userSettingsModal')
     closeDropdown()
     if(document.getElementById('dashboardPage').style.display!=='none') closeDashboard()
+  }
+    if(e.key==='Enter'){
+    const receipt = document.getElementById('receiptModal')
+    const billImg = document.getElementById('billImageModal')
+    if(receipt && receipt.classList.contains('open')){
+      printBillAsImage()
+    } else if(billImg && billImg.classList.contains('open')){
+      printBillAsImage()
+    }
   }
 })
 
