@@ -3,7 +3,7 @@
    Full-Page Dashboard | Toggle on 3-dot click
 ============================================================ */
 
-let managerMode  = false
+let managerMode = localStorage.getItem('managerLoggedIn') === 'true'
 let cart         = {}
 let currency     = '₹'
 let taxRate      = 5
@@ -32,6 +32,8 @@ window.addEventListener('load', async () => {
 }, 1600)
   loadSavedSettings()
   loadSavedBranding()
+const sbSettings = await sbGetAllSettings()
+if(sbSettings && sbSettings.branding) applyBrandingData(sbSettings.branding)
 
   const sbProds = await sbGetProducts()
   if (sbProds && sbProds.length) { products = sbProds; saveProducts() }
@@ -44,6 +46,14 @@ window.addEventListener('load', async () => {
 
   loadProducts()         // restaurant page products
   updateMenuCountBadge()
+
+   if(managerMode) {
+  document.getElementById('sidebarTrigger').style.display='flex'
+  document.getElementById('menuAction').innerHTML=`
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Switch to User`
+  loadProducts()
+}
 })
 
 /* ═══════════ DASHBOARD TOGGLE ═══════════ */
@@ -170,7 +180,9 @@ function closeModal(id){ const el=document.getElementById(id); el.classList.remo
 function managerToggle(){
   if (!managerMode){ openModal('loginModal') }
   else {
-    managerMode=false; cart={}
+    managerMode=false;
+     localStorage.removeItem('managerLoggedIn')
+        cart={}
     document.getElementById('orderPanel') && (document.getElementById('orderPanel').style.display='none')
     document.getElementById('sidebarTrigger').style.display='none'
     document.getElementById('menuAction').innerHTML=`
@@ -190,6 +202,7 @@ async function login(){
   const errEl=document.getElementById('loginError')
   if(u===creds.username && p===creds.password){
     managerMode=true
+     localStorage.setItem('managerLoggedIn', 'true')
     closeModal('loginModal')
     document.getElementById('sidebarTrigger').style.display='flex'
     document.getElementById('menuAction').innerHTML=`
