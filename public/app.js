@@ -457,21 +457,34 @@ function showReceipt(){
   document.getElementById('billTaxLabel').textContent=taxRate
   document.getElementById('billTime').textContent=now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
   openModal('receiptModal')
+setTimeout(() => document.getElementById('printBillBtn').focus(), 350)
 }
 function closeReceipt(){ closeModal('receiptModal') }
 
 async function printBillAsImage(){
   showToast('Generating bill…','')
   try{
-    const canvas=await html2canvas(document.getElementById('billCapture'),{backgroundColor:'#f8f4ec',scale:2,useCORS:true,logging:false})
-    document.getElementById('billImage').src=canvas.toDataURL('image/png')
-    closeModal('receiptModal')
-    setTimeout(()=>openModal('billImageModal'),350)
-    showToast('Bill generated ✓','success')
-    const bill=buildBillRecord(); await saveBillRecord(bill)
-    if(document.getElementById('pref-autoclear')?.checked) clearCart()
-    updateDashStats()
-  }catch(err){ showToast('Could not generate image','error'); console.error(err) }
+    const canvas = await html2canvas(document.getElementById('billCapture'),{backgroundColor:'#f8f4ec',scale:2,useCORS:true,logging:false})
+    
+    // Download automatically
+    const link = document.createElement('a')
+    link.download = `bill-${document.getElementById('billNo').textContent}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    
+    // Print directly
+    const img = new Image()
+    img.src = canvas.toDataURL('image/png')
+    const w = window.open('')
+    w.document.write(`<img src="${img.src}" style="width:100%">`)
+    w.document.close()
+    w.focus()
+    w.print()
+    w.close()
+    
+  } catch(err){
+    showToast('Failed','error')
+  }
 }
 
 function buildBillRecord(){
