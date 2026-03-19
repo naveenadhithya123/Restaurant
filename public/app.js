@@ -473,16 +473,29 @@ async function printBillAsImage(){
     link.href = dataUrl
     link.click()
     
-    // Print - inject image into page and print
-    const printDiv = document.createElement('div')
-    printDiv.id = 'printArea'
-    printDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:99999;background:white;text-align:center'
-    printDiv.innerHTML = `<img src="${dataUrl}" style="width:80mm">`
-    document.body.appendChild(printDiv)
-    
-    window.print()
-    
-    document.body.removeChild(printDiv)
+    // Print
+    const w = window.open('','_blank','width=400,height=600')
+    w.document.write(`
+      <html>
+      <head>
+      <style>
+        body { margin:0; padding:0; }
+        img { width:100%; display:block; }
+        @page { margin:0; }
+      </style>
+      </head>
+      <body>
+        <img src="${dataUrl}">
+        <script>
+          window.onload = function(){
+            window.print()
+            window.close()
+          }
+        <\/script>
+      </body>
+      </html>
+    `)
+    w.document.close()
     
   } catch(err){
     showToast('Failed','error')
