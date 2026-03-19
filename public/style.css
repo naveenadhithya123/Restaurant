@@ -496,14 +496,10 @@ html{scroll-behavior:smooth}
 
 @media print {
   body * { visibility: hidden; }
-  #billCapture, #billCapture * { visibility: visible; }
-  #billCapture {
+  #printArea, #printArea * { visibility: visible; }
+  #printArea {
     position: fixed;
     left: 0; top: 0;
     width: 80mm;
-    margin: 0;
-    padding: 10px;
-    font-size: 12px;
   }
-  .modal-overlay { background: none !important; }
 }
