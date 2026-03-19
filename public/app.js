@@ -473,29 +473,28 @@ async function printBillAsImage(){
     link.href = dataUrl
     link.click()
     
-    // Print
-    const w = window.open('','_blank','width=400,height=600')
-    w.document.write(`
-      <html>
-      <head>
-      <style>
-        body { margin:0; padding:0; }
-        img { width:100%; display:block; }
-        @page { margin:0; }
-      </style>
-      </head>
-      <body>
-        <img src="${dataUrl}">
-        <script>
-          window.onload = function(){
-            window.print()
-            window.close()
-          }
-        <\/script>
-      </body>
-      </html>
-    `)
-    w.document.close()
+    // Print using hidden iframe
+    let iframe = document.getElementById('printFrame')
+    if(iframe) document.body.removeChild(iframe)
+    iframe = document.createElement('iframe')
+    iframe.id = 'printFrame'
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:80mm;height:auto;border:none'
+    document.body.appendChild(iframe)
+    
+    const doc = iframe.contentWindow.document
+    doc.open()
+    doc.write(`<html><head><style>
+      body{margin:0;padding:0}
+      img{width:100%;height:auto;display:block}
+      @page{margin:0;size:80mm auto}
+    </style></head>
+    <body><img src="${dataUrl}"></body></html>`)
+    doc.close()
+    
+    setTimeout(() => {
+      iframe.contentWindow.focus()
+      iframe.contentWindow.print()
+    }, 800)
     
   } catch(err){
     showToast('Failed','error')
