@@ -26,7 +26,10 @@ function getMgrCreds(){ return { username: localStorage.getItem('mgr_u')||'admin
 /* ═══════════ INIT ═══════════ */
 window.addEventListener('load', async () => {
   initSupabase()
-  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 1600)
+  setTimeout(() => {
+  const loader = document.getElementById('loader')
+  if(loader) { loader.style.display = 'none' }
+}, 1600)
   loadSavedSettings()
   loadSavedBranding()
 
