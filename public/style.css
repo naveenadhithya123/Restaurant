@@ -499,7 +499,14 @@ html{scroll-behavior:smooth}
   #printArea, #printArea * { visibility: visible; }
   #printArea {
     position: fixed;
-    left: 0; top: 0;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
     width: 80mm;
+    padding: 5mm;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 0;
   }
 }
