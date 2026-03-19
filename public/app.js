@@ -709,6 +709,14 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Enter'){
     const receipt = document.getElementById('receiptModal')
     const billImg = document.getElementById('billImageModal')
+    const dashPage = document.getElementById('dashboardPage')
+    
+    if(dashPage && dashPage.style.display!=='none' && 
+       receipt && !receipt.classList.contains('open')){
+      showReceipt()
+      return
+    }
+    
     if(receipt && receipt.classList.contains('open')){
       printBillAsImage()
     } else if(billImg && billImg.classList.contains('open')){
