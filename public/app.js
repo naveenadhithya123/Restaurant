@@ -473,27 +473,30 @@ async function printBillAsImage(){
     link.href = dataUrl
     link.click()
     
-    // Print using new window
-    const w = window.open('','_blank')
-    w.document.write(`<!DOCTYPE html>
-      <html>
-      <head>
-      <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { display:flex; justify-content:center; background:white; }
-        img { width:100%; max-width:400px; height:auto; display:block; }
-        @page { margin:0; size:auto; }
-        @media print {
-          body { justify-content:center; }
-          img { width:100%; max-width:100%; }
-        }
-      </style>
-      </head>
-      <body>
-        <img src="${dataUrl}" onload="window.print()">
-      </body>
-      </html>`)
-    w.document.close()
+    // Print on same page using hidden iframe
+    let iframe = document.getElementById('silentPrintFrame')
+    if(iframe) iframe.remove()
+    iframe = document.createElement('iframe')
+    iframe.id = 'silentPrintFrame'
+    iframe.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:0;height:0;border:none;visibility:hidden'
+    document.body.appendChild(iframe)
+    
+    const doc = iframe.contentWindow.document
+    doc.open()
+    doc.write(`<!DOCTYPE html><html><head>
+    <style>
+      *{margin:0;padding:0}
+      body{background:white}
+      img{width:100%;height:auto;display:block}
+      @page{margin:0;size:auto}
+    </style></head>
+    <body><img src="${dataUrl}"></body></html>`)
+    doc.close()
+    
+    setTimeout(()=>{
+      iframe.contentWindow.focus()
+      iframe.contentWindow.print()
+    }, 1000)
     
   } catch(err){
     showToast('Failed','error')
