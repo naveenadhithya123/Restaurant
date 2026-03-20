@@ -511,3 +511,18 @@ html{scroll-behavior:smooth}
   }
   @page { margin: 0; size: auto; }
 }
+@media (max-width: 768px) {
+  .products-grid {
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+  .card-img-wrap {
+    height: 110px !important;
+  }
+  .card h3 {
+    font-size: 13px !important;
+  }
+  .price {
+    font-size: 12px !important;
+  }
+}
