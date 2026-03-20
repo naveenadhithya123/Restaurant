@@ -495,18 +495,19 @@ html{scroll-behavior:smooth}
 
 
 @media print {
-  body * { visibility: hidden; }
-  #printArea, #printArea * { visibility: visible; }
-  #printArea {
-    position: fixed;
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-    width: 80mm;
-    padding: 5mm;
+  body * { visibility: hidden !important; }
+  #printArea { 
+    position: fixed !important;
+    top: 0 !important; 
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    visibility: visible !important;
   }
-  @page {
-    size: 80mm auto;
-    margin: 0;
+  #printArea img { 
+    width: 100% !important;
+    height: auto !important;
+    visibility: visible !important;
   }
+  @page { margin: 0; size: auto; }
 }
