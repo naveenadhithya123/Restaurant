@@ -479,10 +479,10 @@ async function printBillAsImage(){
     printDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:99999;background:white;text-align:center'
     printDiv.innerHTML = `<img src="${dataUrl}" style="width:80mm">`
     document.body.appendChild(printDiv)
-    
-    window.print()
-    
-    document.body.removeChild(printDiv)
+      setTimeout(() => {
+      window.print()
+      setTimeout(() => document.body.removeChild(printDiv), 500)
+      }, 500)
     
   } catch(err){
     showToast('Failed','error')
