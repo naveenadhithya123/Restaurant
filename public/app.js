@@ -100,7 +100,7 @@ function loadProducts(){
   container.className = `products-grid${layout==='compact'?' compact':''}`
   const text = document.getElementById('search').value.toLowerCase()
   const filtered = products.filter(p => p.name.toLowerCase().includes(text))
-
+  if(window.innerWidth <= 768){ const cols = filtered.length > 60 ? 4 : filtered.length > 30 ? 3 : 2; container.style.gridTemplateColumns = `repeat(${cols}, 1fr)` }
   if (!filtered.length){
     container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><p style="font-size:16px;color:var(--text-2)">No items found</p></div>`
     return
@@ -122,7 +122,7 @@ function loadDashProducts(filter=''){
   container.innerHTML = ''
   container.className = 'dash-products-grid'
   const filtered = products.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()))
-
+  if(window.innerWidth <= 768){ const cols = filtered.length > 60 ? 4 : filtered.length > 30 ? 3 : 2; container.style.gridTemplateColumns = `repeat(${cols}, 1fr)` }
   filtered.forEach((p,i) => {
     const div = document.createElement('div')
     div.className = 'card clickable'
