@@ -476,8 +476,8 @@ async function printBillAsImage(){
     // Print
     const printDiv = document.createElement('div')
     printDiv.id = 'printArea'
-    printDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:99999;background:white;display:flex;align-items:center;justify-content:center;overflow:auto'
-    printDiv.innerHTML = `<img src="${dataUrl}" style="max-width:90vw;max-height:90vh;width:auto;height:auto;display:block;margin:auto">`
+    printDiv.style.cssText = 'position:fixed;top:-99999px;left:-99999px;width:1px;height:1px;overflow:hidden'
+    printDiv.innerHTML = `<img src="${dataUrl}">`
     document.body.appendChild(printDiv)
       setTimeout(() => {
       window.print()
