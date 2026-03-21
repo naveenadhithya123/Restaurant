@@ -121,3 +121,63 @@ async function sbGetAllSettings() {
   data.forEach(r => { try { out[r.key] = JSON.parse(r.value) } catch { out[r.key] = r.value } })
   return out
 }
+
+/* ── ORDERS ────────────────────────────────────────── */
+async function sbCreateOrder(table_no, items) {
+  if (!sb) return null
+  const { data, error } = await sb.from('orders')
+    .insert([{ table_no, items, status: 'pending' }]).select()
+  return error ? null : data[0]
+}
+
+async function sbGetActiveOrders() {
+  if (!sb) return null
+  const { data, error } = await sb.from('orders')
+    .select('*, order_items(*)')
+    .not('status', 'eq', 'billed')
+    .order('created_at', { ascending: true })
+  return error ? null : data
+}
+
+async function sbGetOrderItems(order_id) {
+  if (!sb) return null
+  const { data, error } = await sb.from('order_items')
+    .select('*').eq('order_id', order_id)
+    .order('created_at', { ascending: true })
+  return error ? null : data
+}
+
+async function sbAddOrderItems(order_id, items, is_parcel=false) {
+  if (!sb) return null
+  const rows = items.map(i => ({
+    order_id, item_name: i.name,
+    quantity: i.qty, price: i.price, is_parcel,
+    status: 'pending'
+  }))
+  const { data, error } = await sb.from('order_items').insert(rows).select()
+  return error ? null : data
+}
+
+async function sbUpdateOrderItemStatus(item_id, status) {
+  if (!sb) return null
+  const { error } = await sb.from('order_items')
+    .update({ status }).eq('id', item_id)
+  return !error
+}
+
+async function sbUpdateOrderStatus(order_id, status) {
+  if (!sb) return null
+  const { error } = await sb.from('orders')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', order_id)
+  return !error
+}
+
+async function sbGetOrdersByStatus(status) {
+  if (!sb) return null
+  const { data, error } = await sb.from('orders')
+    .select('*, order_items(*)')
+    .eq('status', status)
+    .order('created_at', { ascending: true })
+  return error ? null : data
+}
