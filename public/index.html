@@ -90,57 +90,66 @@
 
     <!-- ── BILLING PAGE ── -->
     <div class="dash-page active" id="dp-billing">
+  <div class="billing-tabs" style="display:flex;gap:8px;margin-bottom:20px">
+    <button class="server-tab active" onclick="switchBillingTab('counter')">Bill Counter</button>
+    <button class="server-tab" onclick="switchBillingTab('pending')">Pending Bills <span class="server-badge" id="pendingBillBadge"></span></button>
+  </div>
+  <div id="billingCounterTab">
       <div class="dash-page-header">
         <h1 class="dash-page-title">Billing</h1>
         <p class="dash-page-sub">Manage orders and generate receipts</p>
       </div>
 
       <div class="billing-layout">
-        <!-- Menu Grid -->
-        <div class="billing-menu-area">
-          <div class="billing-menu-toolbar">
-            <div class="billing-search-wrap">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input id="dashSearch" class="billing-search" placeholder="Search menu…" oninput="dashSearchProducts(this.value)">
-            </div>
-            <button class="dash-add-btn" onclick="openModal('addModal')">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Add Item
-            </button>
-          </div>
-          <div id="dashProducts" class="dash-products-grid"></div>
-        </div>
-
-        <!-- Order Panel -->
-        <div class="billing-order-panel">
-          <div class="bop-header">
-            <h2 class="bop-title">Order Summary</h2>
-            <button class="bop-clear" onclick="clearCart()">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
-              Clear
-            </button>
-          </div>
-          <div class="bop-divider"></div>
-          <div id="dashOrders" class="bop-order-list">
-            <div class="bop-empty">
-              <div style="font-size:32px;opacity:.3">🍽</div>
-              <p>No items yet</p>
-              <span>Click a dish to add</span>
-            </div>
-          </div>
-          <div class="bop-divider"></div>
-          <div class="bop-totals">
-            <div class="bop-row"><span>Subtotal</span><span><span class="cur">₹</span><span id="dSubtotal">0</span></span></div>
-            <div class="bop-row tax"><span>Tax (<span id="dTaxLabel">5</span>%)</span><span><span class="cur">₹</span><span id="dTaxAmt">0</span></span></div>
-            <div class="bop-row grand"><span>Total</span><span><span class="cur">₹</span><span id="dTotal">0</span></span></div>
-          </div>
-          <button class="bop-receipt-btn" onclick="showReceipt()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Generate Receipt
-          </button>
-        </div>
+  <!-- Menu Grid -->
+  <div class="billing-menu-area">
+    <div class="billing-menu-toolbar">
+      <div class="billing-search-wrap">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="dashSearch" class="billing-search" placeholder="Search menu…" oninput="dashSearchProducts(this.value)">
+      </div>
+      <button class="dash-add-btn" onclick="openModal('addModal')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Item
+      </button>
+    </div>
+    <div id="dashProducts" class="dash-products-grid"></div>
+  </div>
+  <!-- Order Panel -->
+  <div class="billing-order-panel">
+    <div class="bop-header">
+      <h2 class="bop-title">Order Summary</h2>
+      <button class="bop-clear" onclick="clearCart()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        Clear
+      </button>
+    </div>
+    <div class="bop-divider"></div>
+    <div id="dashOrders" class="bop-order-list">
+      <div class="bop-empty">
+        <div style="font-size:32px;opacity:.3">🍽</div>
+        <p>No items yet</p>
+        <span>Click a dish to add</span>
       </div>
     </div>
+    <div class="bop-divider"></div>
+    <div class="bop-totals">
+      <div class="bop-row"><span>Subtotal</span><span><span class="cur">₹</span><span id="dSubtotal">0</span></span></div>
+      <div class="bop-row tax"><span>Tax (<span id="dTaxLabel">5</span>%)</span><span><span class="cur">₹</span><span id="dTaxAmt">0</span></span></div>
+      <div class="bop-row grand"><span>Total</span><span><span class="cur">₹</span><span id="dTotal">0</span></span></div>
+    </div>
+    <button class="bop-receipt-btn" onclick="showReceipt()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Generate Receipt
+    </button>
+  </div>
+</div>
+  </div>
+  <div id="billingPendingTab" style="display:none">
+    <div id="billCounterPendingCards"></div>
+  </div>
+</div>
+
   <!-- ── SERVER PAGE ── -->
 <div class="dash-page" id="dp-server">
   <div class="dash-page-header">
