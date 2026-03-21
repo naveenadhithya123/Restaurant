@@ -1029,7 +1029,7 @@ function loadServerProducts(){
     const div = document.createElement('div')
     div.className = 'card clickable'
     div.style.animationDelay = `${i*.04}s`
-    div.innerHTML = cardHTML(p, true)
+    div.innerHTML = cardHTML(p, false)
     div.onclick = () => addToServerCart(p)
     container.appendChild(div)
   })
@@ -1226,9 +1226,9 @@ async function loadServerReceived(){
   orders.forEach(order => {
     const deliveredItems = (order.order_items || []).filter(i => i.status === 'delivered')
     if(!deliveredItems.length) return
-    
     const card = document.createElement('div')
     card.className = 'server-received-card'
+    card.setAttribute('data-order-id', order.id)
     
     const itemsHTML = deliveredItems.map(item => `
       <div class="server-received-item">
@@ -1253,6 +1253,12 @@ async function loadServerReceived(){
 async function sendToBillCounter(orderId){
   await sbUpdateOrderStatus(orderId, 'bill_pending')
   showToast('Sent to bill counter ✓', 'success')
+  // Remove card from server received
+  const cards = document.getElementById('serverReceivedCards')
+  if(cards){
+    const card = cards.querySelector(`[data-order-id="${orderId}"]`)
+    if(card) card.remove()
+  }
   loadServerReceived()
   loadBillCounterPending()
 }
@@ -1337,10 +1343,55 @@ function renderBillCounterTab2(){
 }
 
 /* ── Print Table Bill ── */
-async function printTableBill(orderId, tableNo){
+async function printTableBill(orderId, tableNo, grandTotal){
+  const order = window.billCounterPending.find(o => o.id === orderId)
+  if(!order) return
+
+  const items = (order.order_items || []).map(i => ({
+    name: i.item_name, qty: i.quantity,
+    price: i.price, amount: i.price * i.quantity
+  }))
+  const subtotal = items.reduce((s,i) => s + i.amount, 0)
+  const tax = Math.round(subtotal * (taxRate/100))
+  const total = subtotal + tax
+
+  billCounter++
+  localStorage.setItem('billCounter', billCounter)
+
+  // Fill receipt modal
+  const billItemsEl = document.getElementById('billItems')
+  billItemsEl.innerHTML = ''
+  items.forEach(item => {
+    const row = document.createElement('div')
+    row.className = 'bill-item-row'
+    row.innerHTML = `<span>${item.name}</span><span>${item.qty}</span><span>${currency}${item.price}</span><span>${currency}${item.amount}</span>`
+    billItemsEl.appendChild(row)
+  })
+
+  document.getElementById('billNo').textContent = `#${String(billCounter).padStart(4,'0')}`
+  document.getElementById('billSubtotal').textContent = `${currency}${subtotal.toLocaleString('en-IN')}`
+  document.getElementById('billTax').textContent = `${currency}${tax.toLocaleString('en-IN')}`
+  document.getElementById('billTotal').textContent = `${currency}${total.toLocaleString('en-IN')}`
+  document.getElementById('billTaxLabel').textContent = taxRate
+  document.getElementById('billTime').textContent = new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+
+  // Save to database
   await sbUpdateOrderStatus(orderId, 'billed')
-  showToast('Bill printed ✓', 'success')
+  const bill = {
+    bill_no: `#${String(billCounter).padStart(4,'0')}`,
+    items, subtotal, tax, total, currency,
+    table_no: tableNo
+  }
+  await sbSaveBill(bill)
+
+  // Save to bills cache
+  billsCache.unshift({...bill, created_at: new Date().toISOString()})
+  localStorage.setItem('billsCache', JSON.stringify(billsCache))
+
+  // Show receipt modal
+  openModal('receiptModal')
   loadBillCounterPending()
+  updateDashStats()
 }
 
 /* ── Auto refresh every 15 seconds ── */
