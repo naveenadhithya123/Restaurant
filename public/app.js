@@ -1239,7 +1239,7 @@ async function loadServerReceived(){
     card.innerHTML = `
       <h3>Table ${order.table_no}</h3>
       ${itemsHTML}
-      <button class="send-to-bill-btn" onclick="sendToBillCounter(${order.id})">
+      <button class="send-to-bill-btn" onclick="Counter(${order.id})">
         🧾 Send to Bill Counter
       </button>
     `
