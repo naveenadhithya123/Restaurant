@@ -472,7 +472,7 @@ async function printBillAsImage(){
     const dataUrl = canvas.toDataURL('image/png')
     
     // Save to database
-    try{ await saveBill() } catch(_){}
+    try{ const bill = buildBillRecord(); await saveBillRecord(bill) } catch(_){}
     
     // Download automatically
     const link = document.createElement('a')
