@@ -1253,12 +1253,6 @@ async function loadServerReceived(){
 async function sendToBillCounter(orderId){
   await sbUpdateOrderStatus(orderId, 'bill_pending')
   showToast('Sent to bill counter ✓', 'success')
-  // Remove card from server received
-  const cards = document.getElementById('serverReceivedCards')
-  if(cards){
-    const card = cards.querySelector(`[data-order-id="${orderId}"]`)
-    if(card) card.remove()
-  }
   loadServerReceived()
   loadBillCounterPending()
 }
@@ -1343,14 +1337,19 @@ function renderBillCounterTab2(){
 }
 
 /* ── Print Table Bill ── */
-async function printTableBill(orderId, tableNo, grandTotal){
-  const order = window.billCounterPending.find(o => o.id === orderId)
-  if(!order) return
+async function printTableBill(orderId, tableNo){
+  // Find order
+  const orders = await sbGetOrdersByStatus('bill_pending')
+  const order = orders ? orders.find(o => o.id === orderId) : null
+  if(!order){ showToast('Order not found', 'error'); return }
 
   const items = (order.order_items || []).map(i => ({
     name: i.item_name, qty: i.quantity,
     price: i.price, amount: i.price * i.quantity
   }))
+  
+  if(!items.length){ showToast('No items found', 'error'); return }
+  
   const subtotal = items.reduce((s,i) => s + i.amount, 0)
   const tax = Math.round(subtotal * (taxRate/100))
   const total = subtotal + tax
@@ -1364,34 +1363,47 @@ async function printTableBill(orderId, tableNo, grandTotal){
   items.forEach(item => {
     const row = document.createElement('div')
     row.className = 'bill-item-row'
-    row.innerHTML = `<span>${item.name}</span><span>${item.qty}</span><span>${currency}${item.price}</span><span>${currency}${item.amount}</span>`
+    row.innerHTML = `
+      <span>${item.name}</span>
+      <span>${item.qty}</span>
+      <span>${currency}${item.price}</span>
+      <span>${currency}${item.amount}</span>`
     billItemsEl.appendChild(row)
   })
 
-  document.getElementById('billNo').textContent = `#${String(billCounter).padStart(4,'0')}`
+  const billNo = `#${String(billCounter).padStart(4,'0')}`
+  document.getElementById('billNo').textContent = billNo
   document.getElementById('billSubtotal').textContent = `${currency}${subtotal.toLocaleString('en-IN')}`
   document.getElementById('billTax').textContent = `${currency}${tax.toLocaleString('en-IN')}`
   document.getElementById('billTotal').textContent = `${currency}${total.toLocaleString('en-IN')}`
   document.getElementById('billTaxLabel').textContent = taxRate
-  document.getElementById('billTime').textContent = new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+  document.getElementById('billTime').textContent = new Date().toLocaleString('en-IN',{
+    timeZone:'Asia/Kolkata',day:'2-digit',month:'short',
+    year:'numeric',hour:'2-digit',minute:'2-digit'
+  })
 
-  // Save to database
+  // Mark as billed in database
   await sbUpdateOrderStatus(orderId, 'billed')
+
+  // Save bill to Supabase
   const bill = {
-    bill_no: `#${String(billCounter).padStart(4,'0')}`,
-    items, subtotal, tax, total, currency,
-    table_no: tableNo
+    bill_no: billNo,
+    items, subtotal, tax, total, currency
   }
   await sbSaveBill(bill)
 
-  // Save to bills cache
+  // Save to local cache
   billsCache.unshift({...bill, created_at: new Date().toISOString()})
   localStorage.setItem('billsCache', JSON.stringify(billsCache))
 
-  // Show receipt modal
+  // Show receipt modal — this triggers print
   openModal('receiptModal')
-  loadBillCounterPending()
-  updateDashStats()
+  
+  // Refresh bill counter tab
+  setTimeout(() => {
+    loadBillCounterPending()
+    updateDashStats()
+  }, 500)
 }
 
 /* ── Auto refresh every 15 seconds ── */
