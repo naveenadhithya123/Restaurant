@@ -1251,9 +1251,19 @@ async function loadServerReceived(){
 
 /* ── Send to Bill Counter ── */
 async function sendToBillCounter(orderId){
+  // Remove card immediately from UI
+  const container = document.getElementById('serverReceivedCards')
+  if(container){
+    const cards = container.querySelectorAll('.server-received-card')
+    cards.forEach(card => {
+      if(card.getAttribute('data-order-id') == orderId){
+        card.remove()
+      }
+    })
+  }
   await sbUpdateOrderStatus(orderId, 'bill_pending')
   showToast('Sent to bill counter ✓', 'success')
-  loadServerReceived()
+  updateServerBadge()
   loadBillCounterPending()
 }
 
@@ -1398,7 +1408,11 @@ async function printTableBill(orderId, tableNo){
 
   // Show receipt modal — this triggers print
   openModal('receiptModal')
-  
+  // Auto trigger print after modal opens
+setTimeout(() => {
+  const printBtn = document.getElementById('printBillBtn')
+  if(printBtn) printBtn.click()
+}, 500)
   // Refresh bill counter tab
   setTimeout(() => {
     loadBillCounterPending()
