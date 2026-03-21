@@ -1341,3 +1341,11 @@ function startServerRefresh(){
     updateServerBadge()
   }, 15000)
 }
+
+function switchBillingTab(tab){
+  document.querySelectorAll('.billing-tabs .server-tab').forEach(b => b.classList.remove('active'))
+  document.querySelector(`[onclick="switchBillingTab('${tab}')"]`).classList.add('active')
+  document.getElementById('billingCounterTab').style.display = tab === 'counter' ? 'block' : 'none'
+  document.getElementById('billingPendingTab').style.display = tab === 'pending' ? 'block' : 'none'
+  if(tab === 'pending') loadBillCounterPending()
+}
