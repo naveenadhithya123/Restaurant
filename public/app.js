@@ -1407,10 +1407,19 @@ async function printTableBill(orderId, tableNo){
   localStorage.setItem('billsCache', JSON.stringify(billsCache))
  // Direct print - same as billing tab 1
 // Show receipt modal first then print
-  openModal('receiptModal')
-  setTimeout(async () => {
-    await printBillAsImage()
-  }, 800)
+  // Make billCapture visible temporarily for capture
+const billCapture = document.getElementById('billCapture')
+const receiptModal = document.getElementById('receiptModal')
+receiptModal.style.display = 'flex'
+receiptModal.style.opacity = '0'
+receiptModal.style.pointerEvents = 'none'
+
+setTimeout(async () => {
+  await printBillAsImage()
+  receiptModal.style.opacity = ''
+  receiptModal.style.pointerEvents = ''
+  receiptModal.style.display = 'none'
+}, 500)
   // Refresh bill counter tab
   setTimeout(() => {
     loadBillCounterPending()
