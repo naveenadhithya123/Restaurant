@@ -1406,7 +1406,11 @@ async function printTableBill(orderId, tableNo){
   billsCache.unshift({...bill, created_at: new Date().toISOString()})
   localStorage.setItem('billsCache', JSON.stringify(billsCache))
  // Direct print - same as billing tab 1
-await printBillAsImage()
+// Show receipt modal first then print
+  openModal('receiptModal')
+  setTimeout(async () => {
+    await printBillAsImage()
+  }, 800)
   // Refresh bill counter tab
   setTimeout(() => {
     loadBillCounterPending()
