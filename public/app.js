@@ -463,6 +463,7 @@ function closeReceipt(){ closeModal('receiptModal') }
 
 async function printBillAsImage(){
   showToast('Generating bill…','')
+  await saveBillToDb()
   try{
     const canvas = await html2canvas(document.getElementById('billCapture'),{backgroundColor:'#f8f4ec',scale:2,useCORS:true,logging:false})
     const dataUrl = canvas.toDataURL('image/png')
