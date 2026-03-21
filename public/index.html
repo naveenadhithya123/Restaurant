@@ -141,7 +141,65 @@
         </div>
       </div>
     </div>
+  <!-- ── SERVER PAGE ── -->
+<div class="dash-page" id="dp-server">
+  <div class="dash-page-header">
+    <h1 class="dash-page-title">Server</h1>
+    <p class="dash-page-sub">Take orders and send to kitchen</p>
+  </div>
+  <div class="server-tabs">
+    <button class="server-tab active" onclick="switchServerTab('order')">Take Order</button>
+    <button class="server-tab" onclick="switchServerTab('received')">Received <span class="server-badge" id="serverBadge"></span></button>
+  </div>
+  <div id="serverOrderTab">
+    <div class="table-input-row">
+      <input id="tableNoInput" class="table-no-input" placeholder="Enter Table Number e.g. T14" type="text">
+    </div>
+    <div id="serverProducts" class="dash-products-grid"></div>
+    <div class="server-order-panel">
+      <h3>Order Summary</h3>
+      <div id="serverOrders"></div>
+      <div class="bop-totals">
+        <div class="bop-row"><span>Total</span><span>₹<span id="serverTotal">0</span></span></div>
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:12px" onclick="sendToKitchen()">
+        🍳 Send to Kitchen
+      </button>
+    </div>
+  </div>
+  <div id="serverReceivedTab" style="display:none">
+    <div id="serverReceivedCards"></div>
+  </div>
+</div>
 
+<!-- ── KITCHEN PAGE ── -->
+<div class="dash-page" id="dp-kitchen">
+  <div class="dash-page-header">
+    <h1 class="dash-page-title">Kitchen</h1>
+    <p class="dash-page-sub">Incoming orders from server</p>
+  </div>
+  <div id="kitchenCards" class="kitchen-cards-grid"></div>
+</div>
+
+<!-- ── CAPTAIN PAGE ── -->
+<div class="dash-page" id="dp-captain">
+  <div class="dash-page-header">
+    <h1 class="dash-page-title">Captain</h1>
+    <p class="dash-page-sub">Deliver dishes to tables</p>
+  </div>
+  <div id="captainTable" class="captain-table-wrap">
+    <table class="captain-table">
+      <thead>
+        <tr>
+          <th>Table</th>
+          <th>Dish</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="captainTableBody"></tbody>
+    </table>
+  </div>
+</div>
     <!-- ── DATABASE PAGE ── -->
     <div class="dash-page" id="dp-database">
       <div class="dash-page-header">
