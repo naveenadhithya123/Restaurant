@@ -617,5 +617,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="supabase-config.js"></script>
 <script src="app.js"></script>
+  <!-- Mobile card expand -->
+<div class="mobile-expand-backdrop" id="expandBackdrop" onclick="closeMobileExpand()"></div>
+<div class="mobile-expand-overlay" id="mobileExpand">
+  <button class="mobile-expand-close" onclick="closeMobileExpand()">✕</button>
+  <div id="expandImgWrap"></div>
+  <div class="mobile-expand-name" id="expandName"></div>
+  <div class="mobile-expand-price" id="expandPrice"></div>
+</div>
 </body>
 </html>
