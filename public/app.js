@@ -475,7 +475,13 @@ async function printBillAsImage(){
     const dataUrl = canvas.toDataURL('image/png')
     
     // Save to database
-    try{ const bill = buildBillRecord(); await saveBillRecord(bill) } catch(_){}
+    // Save to database (only for normal billing, not table billing)
+  try{ 
+    if(Object.keys(cart).length > 0){
+      const bill = buildBillRecord(); 
+      await saveBillRecord(bill)
+    }
+ } catch(_){}
     
     // Download automatically
     const link = document.createElement('a')
