@@ -110,7 +110,11 @@ function loadProducts(){
     div.className = `card${managerMode?' clickable':''}`
     div.style.animationDelay = `${i*.06}s`
     div.innerHTML = cardHTML(p, managerMode)
-    if (managerMode) div.onclick = () => addToOrder(p)
+    if(managerMode){
+      div.onclick = () => addToOrder(p)
+    } else {
+    div.onclick = () => openMobileExpand(p)
+    }
     container.appendChild(div)
   })
   updateMenuCountBadge()
@@ -962,4 +966,30 @@ async function resetPassword() {
 function saveMgrEmail() {
   const email = document.getElementById('br-email')?.value.trim()
   if (email) localStorage.setItem('mgr_email', email)
+}
+function openMobileExpand(p){
+  if(window.innerWidth > 768) return
+  const overlay = document.getElementById('mobileExpand')
+  const backdrop = document.getElementById('expandBackdrop')
+  document.getElementById('expandName').textContent = p.name
+  document.getElementById('expandPrice').textContent = `₹${Number(p.price).toLocaleString('en-IN')}`
+  const imgWrap = document.getElementById('expandImgWrap')
+  imgWrap.innerHTML = p.image
+    ? `<img class="mobile-expand-img" src="${p.image}" onerror="this.style.display='none'">`
+    : `<div class="mobile-expand-fallback">${p.name.charAt(0)}</div>`
+  overlay.style.display = 'block'
+  backdrop.style.display = 'block'
+  setTimeout(() => overlay.classList.add('open'), 10)
+}
+
+function closeMobileExpand(){
+  const overlay = document.getElementById('mobileExpand')
+  const backdrop = document.getElementById('expandBackdrop')
+  overlay.classList.add('closing')
+  overlay.classList.remove('open')
+  setTimeout(() => {
+    overlay.classList.remove('closing')
+    overlay.style.display = 'none'
+    backdrop.style.display = 'none'
+  }, 200)
 }
