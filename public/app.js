@@ -1293,6 +1293,7 @@ function renderBillCounterTab2(){
     const allItems = (order.order_items || [])
     const card = document.createElement('div')
     card.className = 'server-received-card'
+    card.id = `bc-card-${order.id}`
     
     const itemsHTML = allItems.map(item => `
       <div class="server-received-item">
@@ -1302,15 +1303,32 @@ function renderBillCounterTab2(){
     `).join('')
     
     const total = allItems.reduce((s,i) => s + (i.price * i.quantity), 0)
+    const tax = Math.round(total * (taxRate/100))
+    const grand = total + tax
     
     card.innerHTML = `
-      <h3>Table ${order.table_no}</h3>
-      ${itemsHTML}
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-weight:700;color:var(--gold)">
-        Total: ₹${total.toLocaleString('en-IN')}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="color:var(--gold);margin:0">Table ${order.table_no}</h3>
+        <button class="dash-add-btn" onclick="openBcAddModal(${order.id})">
+          + Add
+        </button>
+      </div>
+      <div id="bc-items-${order.id}">
+        ${itemsHTML}
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);margin-bottom:4px">
+          <span>Subtotal</span><span>₹${total.toLocaleString('en-IN')}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);margin-bottom:8px">
+          <span>Tax (${taxRate}%)</span><span>₹${tax.toLocaleString('en-IN')}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;color:var(--gold)">
+          <span>Total</span><span>₹${grand.toLocaleString('en-IN')}</span>
+        </div>
       </div>
       <button class="btn-primary" style="width:100%;margin-top:12px" 
-        onclick="printTableBill(${order.id}, '${order.table_no}')">
+        onclick="printTableBill(${order.id}, '${order.table_no}', ${grand})">
         🖨️ Print Bill
       </button>
     `
@@ -1348,4 +1366,133 @@ function switchBillingTab(tab){
   document.getElementById('billingCounterTab').style.display = tab === 'counter' ? 'block' : 'none'
   document.getElementById('billingPendingTab').style.display = tab === 'pending' ? 'block' : 'none'
   if(tab === 'pending') loadBillCounterPending()
+}
+
+
+/* ── Bill Counter Add Items Modal ── */
+let bcCurrentOrderId = null
+
+function openBcAddModal(orderId){
+  bcCurrentOrderId = orderId
+  const order = window.billCounterPending.find(o => o.id === orderId)
+  if(!order) return
+  
+  // Create modal dynamically
+  let modal = document.getElementById('bcAddModal')
+  if(!modal){
+    modal = document.createElement('div')
+    modal.id = 'bcAddModal'
+    modal.className = 'modal-overlay'
+    modal.style.display = 'none'
+    modal.innerHTML = `
+      <div class="modal-card" style="max-width:600px;width:95%">
+        <h2 class="modal-title">Add Items — Table ${order.table_no}</h2>
+        <p class="modal-sub">Select dishes to add to this order</p>
+        <div id="bcProductsGrid" class="dash-products-grid" style="max-height:400px;overflow-y:auto;margin-bottom:16px"></div>
+        <div style="background:var(--bg-input);border-radius:10px;padding:12px;margin-bottom:16px">
+          <h4 style="color:var(--text-2);font-size:12px;text-transform:uppercase;margin-bottom:8px">Selected</h4>
+          <div id="bcSelectedItems"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-primary" onclick="bcConfirmAdd()">Add to Order</button>
+          <button class="btn-ghost" onclick="closeModal('bcAddModal')">Cancel</button>
+        </div>
+      </div>
+    `
+    document.body.appendChild(modal)
+  } else {
+    modal.querySelector('.modal-title').textContent = `Add Items — Table ${order.table_no}`
+  }
+  
+  // Reset
+  window.bcTempCart = {}
+  
+  // Load products
+  const grid = document.getElementById('bcProductsGrid')
+  grid.innerHTML = ''
+  products.forEach(p => {
+    const div = document.createElement('div')
+    div.className = 'card clickable'
+    div.innerHTML = cardHTML(p, true)
+    div.onclick = () => addToBcCart(p)
+    grid.appendChild(div)
+  })
+  
+  updateBcSelected()
+  openModal('bcAddModal')
+}
+
+function addToBcCart(p){
+  if(!window.bcTempCart) window.bcTempCart = {}
+  if(!window.bcTempCart[p.name]) window.bcTempCart[p.name] = {qty:0, price:p.price}
+  window.bcTempCart[p.name].qty++
+  updateBcSelected()
+  showToast(`+1 ${p.name}`, 'success')
+}
+
+function updateBcSelected(){
+  const el = document.getElementById('bcSelectedItems')
+  if(!el) return
+  const entries = Object.entries(window.bcTempCart || {})
+  if(!entries.length){
+    el.innerHTML = '<p style="color:var(--text-3);font-size:13px">No items selected</p>'
+    return
+  }
+  el.innerHTML = entries.map(([name, data]) => `
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--text-1)">
+      <span>${data.qty}× ${name}</span>
+      <span style="color:var(--gold)">₹${data.qty * data.price}</span>
+    </div>
+  `).join('')
+}
+
+async function bcConfirmAdd(){
+  if(!window.bcTempCart || !Object.keys(window.bcTempCart).length){
+    showToast('Select items first!', 'error')
+    return
+  }
+  
+  const items = Object.entries(window.bcTempCart).map(([name, data]) => ({
+    name, qty: data.qty, price: data.price
+  }))
+  
+  await sbAddOrderItems(bcCurrentOrderId, items, false)
+  closeModal('bcAddModal')
+  showToast('Items added ✓', 'success')
+  window.bcTempCart = {}
+  loadBillCounterPending()
+}
+
+/* ── Print Table Bill ── */
+async function printTableBill(orderId, tableNo, total){
+  // Mark as billed
+  await sbUpdateOrderStatus(orderId, 'billed')
+  
+  // Save to bills database
+  const order = window.billCounterPending.find(o => o.id === orderId)
+  if(order){
+    const items = (order.order_items || []).map(i => ({
+      name: i.item_name, qty: i.quantity,
+      price: i.price, amount: i.price * i.quantity
+    }))
+    const subtotal = items.reduce((s,i) => s + i.amount, 0)
+    const tax = Math.round(subtotal * (taxRate/100))
+    const billTotal = subtotal + tax
+    
+    billCounter++
+    localStorage.setItem('billCounter', billCounter)
+    
+    const bill = {
+      bill_no: `#${String(billCounter).padStart(4,'0')}`,
+      items, subtotal, tax,
+      total: billTotal,
+      currency,
+      table_no: tableNo
+    }
+    await sbSaveBill(bill)
+  }
+  
+  showToast('Bill printed & saved ✓', 'success')
+  loadBillCounterPending()
+  updateDashStats()
 }
