@@ -469,6 +469,12 @@ setTimeout(() => document.getElementById('printBillBtn').focus(), 350)
 function closeReceipt(){ closeModal('receiptModal') }
 
 async function printBillAsImage(){
+   const billCapture = document.getElementById('billCapture')
+  const rect = billCapture.getBoundingClientRect()
+  if(rect.width === 0){
+    showToast('Please try again','error')
+    return
+  }
   showToast('Generating bill…','')
   try{
     const canvas = await html2canvas(document.getElementById('billCapture'),{backgroundColor:'#f8f4ec',scale:2,useCORS:true,logging:false})
