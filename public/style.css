@@ -648,3 +648,167 @@ html{scroll-behavior:smooth}
   align-items: center;
   justify-content: center;
 }
+/* ══ SERVER / KITCHEN / CAPTAIN ══ */
+.server-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.server-tab {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 13px;
+  position: relative;
+}
+.server-tab.active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+}
+.server-badge {
+  background: red;
+  color: white;
+  border-radius: 50%;
+  padding: 1px 5px;
+  font-size: 10px;
+  margin-left: 4px;
+}
+.table-input-row {
+  margin-bottom: 16px;
+}
+.table-no-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--text-1);
+  font-size: 15px;
+  width: 220px;
+}
+.server-order-panel {
+  background: var(--bg-card);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid var(--border);
+}
+.server-received-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.server-received-card h3 {
+  color: var(--gold);
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+.server-received-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-1);
+}
+.kitchen-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.kitchen-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+.kitchen-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.kitchen-table-badge {
+  background: var(--gold);
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.kitchen-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-1);
+}
+.kitchen-item-row.done {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+.btn-complete {
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.captain-table-wrap {
+  overflow-x: auto;
+}
+.captain-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.captain-table th {
+  background: var(--bg-input);
+  padding: 12px 16px;
+  text-align: left;
+  color: var(--text-2);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.captain-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-1);
+  font-size: 14px;
+}
+.parcel-tag {
+  margin-left: 6px;
+  font-size: 14px;
+}
+.btn-send {
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.send-to-bill-btn {
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 12px;
+  width: 100%;
+}
