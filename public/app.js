@@ -79,6 +79,9 @@ function switchDashPage(name){
   document.querySelector(`[data-page="${name}"]`).classList.add('active')
   if (name === 'database')  renderDatabase()
   if (name === 'analytics') renderAnalytics()
+  if (name === 'server')  { loadServerProducts(); startServerRefresh() }
+  if (name === 'kitchen') { loadKitchen(); startKitchenRefresh() }
+  if (name === 'captain') { loadCaptain(); startCaptainRefresh() }
 }
 
 function updateDashStats(){
@@ -995,4 +998,346 @@ function closeMobileExpand(){
     overlay.style.display = 'none'
     backdrop.style.display = 'none'
   }, 200)
+}
+
+/* ══════════════════════════════════════════
+   SERVER / KITCHEN / CAPTAIN SYSTEM
+══════════════════════════════════════════ */
+
+let serverCart = {}
+let currentTableNo = ''
+let kitchenRefreshTimer = null
+let captainRefreshTimer = null
+let serverRefreshTimer = null
+
+/* ── Switch Server Tab ── */
+function switchServerTab(tab){
+  document.querySelectorAll('.server-tab').forEach(b => b.classList.remove('active'))
+  document.querySelector(`[onclick="switchServerTab('${tab}')"]`).classList.add('active')
+  document.getElementById('serverOrderTab').style.display = tab === 'order' ? 'block' : 'none'
+  document.getElementById('serverReceivedTab').style.display = tab === 'received' ? 'block' : 'none'
+  if(tab === 'received') loadServerReceived()
+}
+
+/* ── Load Server Products ── */
+function loadServerProducts(){
+  const container = document.getElementById('serverProducts')
+  if(!container) return
+  container.innerHTML = ''
+  container.className = 'dash-products-grid'
+  products.forEach((p,i) => {
+    const div = document.createElement('div')
+    div.className = 'card clickable'
+    div.style.animationDelay = `${i*.04}s`
+    div.innerHTML = cardHTML(p, true)
+    div.onclick = () => addToServerCart(p)
+    container.appendChild(div)
+  })
+}
+
+/* ── Add to Server Cart ── */
+function addToServerCart(p){
+  if(!serverCart[p.name]) serverCart[p.name] = {qty:0, price:p.price}
+  serverCart[p.name].qty++
+  updateServerOrders()
+  showToast(`+1 ${p.name}`, 'success')
+}
+
+/* ── Update Server Orders ── */
+function updateServerOrders(){
+  const el = document.getElementById('serverOrders')
+  if(!el) return
+  el.innerHTML = ''
+  const entries = Object.entries(serverCart)
+  if(!entries.length){
+    el.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:20px">No items yet</p>'
+    document.getElementById('serverTotal').textContent = '0'
+    return
+  }
+  let total = 0
+  entries.forEach(([name, data]) => {
+    const amount = data.qty * data.price
+    total += amount
+    const row = document.createElement('div')
+    row.className = 'order-item-row'
+    row.innerHTML = `
+      <div class="order-item-info">
+        <div class="order-item-name">${name}</div>
+        <div class="order-item-detail">${currency}${data.price} × ${data.qty}</div>
+      </div>
+      <span class="order-item-price">${currency}${amount}</span>
+      <button class="deleteBtn" onclick="removeFromServerCart('${name}')">✕</button>`
+    el.appendChild(row)
+  })
+  document.getElementById('serverTotal').textContent = total.toLocaleString('en-IN')
+}
+
+/* ── Remove from Server Cart ── */
+function removeFromServerCart(name){
+  delete serverCart[name]
+  updateServerOrders()
+}
+
+/* ── Send to Kitchen ── */
+async function sendToKitchen(tableNo='', isParcel=false){
+  const tableInput = document.getElementById('tableNoInput')
+  const tbl = tableNo || (tableInput ? tableInput.value.trim() : '')
+  if(!tbl){ showToast('Enter table number!', 'error'); return }
+  if(!Object.keys(serverCart).length){ showToast('Add items first!', 'error'); return }
+
+  const items = Object.entries(serverCart).map(([name, data]) => ({
+    name, qty: data.qty, price: data.price
+  }))
+
+  // Check if order exists for this table
+  let order = activeOrders.find(o => o.table_no === tbl && o.status !== 'billed')
+  
+  if(!order){
+    order = await sbCreateOrder(tbl, items)
+    if(order) activeOrders.push(order)
+  }
+
+  if(order){
+    await sbAddOrderItems(order.id, items, isParcel)
+    showToast(`Order sent to kitchen for ${tbl} ✓`, 'success')
+    serverCart = {}
+    if(tableInput) tableInput.value = ''
+    updateServerOrders()
+    loadServerProducts()
+  } else {
+    showToast('Failed to send order', 'error')
+  }
+}
+
+/* ── Active Orders Cache ── */
+let activeOrders = []
+
+/* ── Load Kitchen ── */
+async function loadKitchen(){
+  const container = document.getElementById('kitchenCards')
+  if(!container) return
+  container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">Loading...</p>'
+  
+  const orders = await sbGetActiveOrders()
+  if(!orders || !orders.length){
+    container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">No pending orders</p>'
+    return
+  }
+  
+  activeOrders = orders
+  container.innerHTML = ''
+  
+  orders.forEach(order => {
+    const pendingItems = (order.order_items || []).filter(i => i.status === 'pending')
+    if(!pendingItems.length) return
+    
+    const card = document.createElement('div')
+    card.className = 'kitchen-card'
+    card.id = `kitchen-card-${order.id}`
+    
+    const itemsHTML = pendingItems.map(item => `
+      <div class="kitchen-item-row" id="kitem-${item.id}">
+        <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
+        <button class="btn-complete" onclick="kitchenItemDone(${item.id}, ${order.id})">Done ✓</button>
+      </div>
+    `).join('')
+    
+    card.innerHTML = `
+      <div class="kitchen-card-header">
+        <span class="kitchen-table-badge">Table ${order.table_no}</span>
+        <small style="color:var(--text-3)">${new Date(order.created_at).toLocaleTimeString('en-IN')}</small>
+      </div>
+      ${itemsHTML}
+    `
+    container.appendChild(card)
+  })
+}
+
+/* ── Kitchen Item Done ── */
+async function kitchenItemDone(itemId, orderId){
+  await sbUpdateOrderItemStatus(itemId, 'ready')
+  
+  // Remove from kitchen UI
+  const el = document.getElementById(`kitem-${itemId}`)
+  if(el) el.remove()
+  
+  // Check if card is empty
+  const card = document.getElementById(`kitchen-card-${orderId}`)
+  if(card && !card.querySelectorAll('.kitchen-item-row').length) card.remove()
+  
+  // Refresh captain
+  showToast('Item marked done ✓', 'success')
+  loadCaptain()
+}
+
+/* ── Load Captain ── */
+async function loadCaptain(){
+  const tbody = document.getElementById('captainTableBody')
+  if(!tbody) return
+  
+  const orders = await sbGetActiveOrders()
+  if(!orders){ tbody.innerHTML = ''; return }
+  
+  tbody.innerHTML = ''
+  let hasItems = false
+  
+  orders.forEach(order => {
+    const readyItems = (order.order_items || []).filter(i => i.status === 'ready')
+    readyItems.forEach(item => {
+      hasItems = true
+      const tr = document.createElement('tr')
+      tr.innerHTML = `
+        <td><strong style="color:var(--gold)">Table ${order.table_no}</strong></td>
+        <td>${item.item_name}${item.is_parcel ? ' <span class="parcel-tag">📦</span>' : ''}</td>
+        <td>
+          <button class="btn-send" onclick="captainSend(${item.id}, ${order.id})">Sent ✓</button>
+        </td>
+      `
+      tbody.appendChild(tr)
+    })
+  })
+  
+  if(!hasItems){
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-3);padding:40px">No items ready</td></tr>'
+  }
+}
+
+/* ── Captain Send ── */
+async function captainSend(itemId, orderId){
+  await sbUpdateOrderItemStatus(itemId, 'delivered')
+  showToast('Sent to server ✓', 'success')
+  loadCaptain()
+  loadServerReceived()
+  updateServerBadge()
+}
+
+/* ── Load Server Received ── */
+async function loadServerReceived(){
+  const container = document.getElementById('serverReceivedCards')
+  if(!container) return
+  container.innerHTML = ''
+  
+  const orders = await sbGetActiveOrders()
+  if(!orders || !orders.length){
+    container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">No delivered items</p>'
+    return
+  }
+  
+  orders.forEach(order => {
+    const deliveredItems = (order.order_items || []).filter(i => i.status === 'delivered')
+    if(!deliveredItems.length) return
+    
+    const card = document.createElement('div')
+    card.className = 'server-received-card'
+    
+    const itemsHTML = deliveredItems.map(item => `
+      <div class="server-received-item">
+        <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
+      </div>
+    `).join('')
+    
+    card.innerHTML = `
+      <h3>Table ${order.table_no}</h3>
+      ${itemsHTML}
+      <button class="send-to-bill-btn" onclick="sendToBillCounter(${order.id})">
+        🧾 Send to Bill Counter
+      </button>
+    `
+    container.appendChild(card)
+  })
+  
+  updateServerBadge()
+}
+
+/* ── Send to Bill Counter ── */
+async function sendToBillCounter(orderId){
+  await sbUpdateOrderStatus(orderId, 'bill_pending')
+  showToast('Sent to bill counter ✓', 'success')
+  loadServerReceived()
+  loadBillCounterPending()
+}
+
+/* ── Update Server Badge ── */
+async function updateServerBadge(){
+  const orders = await sbGetActiveOrders()
+  if(!orders) return
+  let count = 0
+  orders.forEach(o => {
+    count += (o.order_items || []).filter(i => i.status === 'delivered').length
+  })
+  const badge = document.getElementById('serverBadge')
+  if(badge) badge.textContent = count > 0 ? count : ''
+}
+
+/* ── Load Bill Counter Pending ── */
+async function loadBillCounterPending(){
+  const orders = await sbGetOrdersByStatus('bill_pending')
+  // This integrates with existing billing tab 2
+  // Store in billCounterPending for use
+  window.billCounterPending = orders || []
+  renderBillCounterTab2()
+}
+
+/* ── Render Bill Counter Tab 2 ── */
+function renderBillCounterTab2(){
+  const container = document.getElementById('billCounterPendingCards')
+  if(!container) return
+  container.innerHTML = ''
+  
+  if(!window.billCounterPending || !window.billCounterPending.length){
+    container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">No pending bills</p>'
+    return
+  }
+  
+  window.billCounterPending.forEach(order => {
+    const allItems = (order.order_items || [])
+    const card = document.createElement('div')
+    card.className = 'server-received-card'
+    
+    const itemsHTML = allItems.map(item => `
+      <div class="server-received-item">
+        <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
+        <span style="color:var(--gold)">₹${item.price * item.quantity}</span>
+      </div>
+    `).join('')
+    
+    const total = allItems.reduce((s,i) => s + (i.price * i.quantity), 0)
+    
+    card.innerHTML = `
+      <h3>Table ${order.table_no}</h3>
+      ${itemsHTML}
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-weight:700;color:var(--gold)">
+        Total: ₹${total.toLocaleString('en-IN')}
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:12px" 
+        onclick="printTableBill(${order.id}, '${order.table_no}')">
+        🖨️ Print Bill
+      </button>
+    `
+    container.appendChild(card)
+  })
+}
+
+/* ── Print Table Bill ── */
+async function printTableBill(orderId, tableNo){
+  await sbUpdateOrderStatus(orderId, 'billed')
+  showToast('Bill printed ✓', 'success')
+  loadBillCounterPending()
+}
+
+/* ── Auto refresh every 15 seconds ── */
+function startKitchenRefresh(){
+  if(kitchenRefreshTimer) clearInterval(kitchenRefreshTimer)
+  kitchenRefreshTimer = setInterval(loadKitchen, 15000)
+}
+function startCaptainRefresh(){
+  if(captainRefreshTimer) clearInterval(captainRefreshTimer)
+  captainRefreshTimer = setInterval(loadCaptain, 15000)
+}
+function startServerRefresh(){
+  if(serverRefreshTimer) clearInterval(serverRefreshTimer)
+  serverRefreshTimer = setInterval(() => {
+    loadServerReceived()
+    updateServerBadge()
+  }, 15000)
 }
