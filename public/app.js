@@ -1355,7 +1355,7 @@ function renderBillCounterTab2(){
         </div>
       </div>
       <button class="btn-primary" style="width:100%;margin-top:12px" 
-        onclick="printTableBill(${order.id}, '${order.table_no}')"
+        onclick="printTableBill(${order.id}, '${order.table_no}')">
         🖨️ Print Bill
       </button>
     `
