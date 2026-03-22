@@ -1378,59 +1378,29 @@ async function printTableBill(orderId, tableNo){
   localStorage.setItem('billCounter', billCounter)
   const billNo = `#${String(billCounter).padStart(4,'0')}`
 
-  // Build bill HTML directly in hidden div
-  const restName = getRestaurantName()
-  const now = new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
-  
-  const itemsHTML = items.map(i => `
-    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #d4c5a9;font-size:14px">
-      <span style="flex:2">${i.name}</span>
-      <span style="flex:1;text-align:center">${i.qty}</span>
-      <span style="flex:1;text-align:right">${currency}${i.price}</span>
-      <span style="flex:1;text-align:right">${currency}${i.amount}</span>
-    </div>
-  `).join('')
+  // Fill the existing receipt modal elements
+  const billItemsEl = document.getElementById('billItems')
+  billItemsEl.innerHTML = ''
+  items.forEach(item => {
+    const row = document.createElement('div')
+    row.className = 'bill-item-row'
+    row.innerHTML = `
+      <span>${item.name}</span>
+      <span>${item.qty}</span>
+      <span>${currency}${item.price}</span>
+      <span>${currency}${item.amount}</span>`
+    billItemsEl.appendChild(row)
+  })
 
-  document.getElementById('tableBillContent').innerHTML = `
-    <div style="text-align:center;margin-bottom:24px">
-      <h1 style="font-size:28px;color:#2a2218;margin-bottom:4px">${restName}</h1>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
-      <div style="text-align:center;flex:1;background:#f0e8d8;padding:12px;border-radius:8px;margin:0 4px">
-        <div style="font-size:11px;color:#9a8060;text-transform:uppercase">Bill No.</div>
-        <div style="font-size:18px;font-weight:700;color:#2a2218">${billNo}</div>
-      </div>
-      <div style="text-align:center;flex:1;background:#f0e8d8;padding:12px;border-radius:8px;margin:0 4px">
-        <div style="font-size:11px;color:#9a8060;text-transform:uppercase">Table</div>
-        <div style="font-size:18px;font-weight:700;color:#2a2218">${tableNo}</div>
-      </div>
-      <div style="text-align:center;flex:1;background:#f0e8d8;padding:12px;border-radius:8px;margin:0 4px">
-        <div style="font-size:11px;color:#9a8060;text-transform:uppercase">Date</div>
-        <div style="font-size:13px;font-weight:700;color:#2a2218">${now}</div>
-      </div>
-    </div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:2px solid #d4c5a9;font-size:12px;color:#9a8060;text-transform:uppercase;letter-spacing:.05em">
-      <span style="flex:2">Item</span>
-      <span style="flex:1;text-align:center">Qty</span>
-      <span style="flex:1;text-align:right">Rate</span>
-      <span style="flex:1;text-align:right">Amount</span>
-    </div>
-    ${itemsHTML}
-    <div style="margin-top:16px;padding-top:16px">
-      <div style="display:flex;justify-content:space-between;font-size:14px;color:#5a4a35;margin-bottom:8px">
-        <span>Subtotal</span><span>${currency}${subtotal.toLocaleString('en-IN')}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:14px;color:#5a4a35;margin-bottom:12px">
-        <span>Tax (${taxRate}%)</span><span>${currency}${tax.toLocaleString('en-IN')}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:20px;font-weight:700;color:#8a5e2a;border-top:2px solid #d4c5a9;padding-top:12px">
-        <span>GRAND TOTAL</span><span>${currency}${total.toLocaleString('en-IN')}</span>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:24px;color:#9a8060;font-style:italic">
-      <p>Thank you for dining with us!</p>
-    </div>
-  `
+  document.getElementById('billNo').textContent = billNo
+  document.getElementById('billSubtotal').textContent = `${currency}${subtotal.toLocaleString('en-IN')}`
+  document.getElementById('billTax').textContent = `${currency}${tax.toLocaleString('en-IN')}`
+  document.getElementById('billTotal').textContent = `${currency}${total.toLocaleString('en-IN')}`
+  document.getElementById('billTaxLabel').textContent = taxRate
+  document.getElementById('billTime').textContent = new Date().toLocaleString('en-IN',{
+    timeZone:'Asia/Kolkata',day:'2-digit',month:'short',
+    year:'numeric',hour:'2-digit',minute:'2-digit'
+  })
 
   // Save to database
   await sbUpdateOrderStatus(orderId, 'billed')
@@ -1439,42 +1409,16 @@ async function printTableBill(orderId, tableNo){
   billsCache.unshift({...bill, created_at: new Date().toISOString()})
   localStorage.setItem('billsCache', JSON.stringify(billsCache))
 
-  // Generate and print
-  showToast('Generating bill…', '')
-  try{
-    const canvas = await html2canvas(document.getElementById('tableBillCapture'), {
-      backgroundColor: '#f8f4ec', scale: 2, useCORS: true, logging: false
-    })
-    const dataUrl = canvas.toDataURL('image/png')
+  // Show receipt modal exactly like Tab 1
+  const receiptEl = document.getElementById('receiptModal')
+  receiptEl.style.display = 'flex'
+  receiptEl.style.opacity = '1'
+  receiptEl.classList.add('open')
 
-    // Download
-    const link = document.createElement('a')
-    link.download = `bill-${billNo}.png`
-    link.href = dataUrl
-    link.click()
-
-    // Print
-    let iframe = document.getElementById('silentPrintFrame')
-    if(iframe) iframe.remove()
-    iframe = document.createElement('iframe')
-    iframe.id = 'silentPrintFrame'
-    iframe.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:0;height:0;border:none;visibility:hidden'
-    document.body.appendChild(iframe)
-    const doc = iframe.contentWindow.document
-    doc.open()
-    doc.write(`<!DOCTYPE html><html><head>
-    <style>*{margin:0;padding:0}body{background:white}img{width:100%;height:auto;display:block}@page{margin:0;size:80mm auto}</style>
-    </head><body><img src="${dataUrl}"></body></html>`)
-    doc.close()
-    setTimeout(()=>{ iframe.contentWindow.focus(); iframe.contentWindow.print() }, 1000)
-
-    showToast('Bill printed & saved ✓', 'success')
-    setTimeout(()=>{ loadBillCounterPending(); updateDashStats() }, 500)
-
-  } catch(err){
-    showToast('Failed', 'error')
-    console.error(err)
-  }
+  setTimeout(()=>{
+    loadBillCounterPending()
+    updateDashStats()
+  }, 1000)
 }
 
 /* ── Auto refresh every 15 seconds ── */
