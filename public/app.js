@@ -1354,10 +1354,10 @@ function renderBillCounterTab2(){
           <span>Total</span><span>₹${grand.toLocaleString('en-IN')}</span>
         </div>
       </div>
-      <button class="btn-primary" style="width:100%;margin-top:12px" 
-        onclick="printTableBill(${order.id}, '${order.table_no}')">
-        🖨️ Print Bill
-      </button>
+      <button style="width:100%;margin-top:12px;padding:12px;background:var(--gold);color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer" 
+  onclick="printTableBill(${order.id}, '${order.table_no}')">
+  🖨️ Print Bill
+</button>
     `
     container.appendChild(card)
   })
