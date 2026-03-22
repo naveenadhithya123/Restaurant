@@ -466,7 +466,10 @@ function showReceipt(){
   openModal('receiptModal')
 setTimeout(() => document.getElementById('printBillBtn').focus(), 350)
 }
-function closeReceipt(){ closeModal('receiptModal') }
+function closeReceipt(){
+  closeModal('receiptModal')
+  document.getElementById('dashboardPage').style.zIndex = ''
+}
 
 async function printBillAsImage(){
    const billCapture = document.getElementById('billCapture')
@@ -1378,7 +1381,6 @@ async function printTableBill(orderId, tableNo){
   localStorage.setItem('billCounter', billCounter)
   const billNo = `#${String(billCounter).padStart(4,'0')}`
 
-  // Fill the existing receipt modal elements
   const billItemsEl = document.getElementById('billItems')
   billItemsEl.innerHTML = ''
   items.forEach(item => {
@@ -1402,17 +1404,18 @@ async function printTableBill(orderId, tableNo){
     year:'numeric',hour:'2-digit',minute:'2-digit'
   })
 
-  // Save to database
   await sbUpdateOrderStatus(orderId, 'billed')
   const bill = { bill_no: billNo, items, subtotal, tax, total, currency }
   await sbSaveBill(bill)
   billsCache.unshift({...bill, created_at: new Date().toISOString()})
   localStorage.setItem('billsCache', JSON.stringify(billsCache))
 
-  // Show receipt modal exactly like Tab 1
+  // Hide dashboard so modal appears on top
+  document.getElementById('dashboardPage').style.zIndex = '0'
   const receiptEl = document.getElementById('receiptModal')
   receiptEl.style.display = 'flex'
   receiptEl.style.opacity = '1'
+  receiptEl.style.zIndex = '9999'
   receiptEl.classList.add('open')
 
   setTimeout(()=>{
