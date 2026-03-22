@@ -1353,7 +1353,7 @@ function renderBillCounterTab2(){
         </div>
       </div>
       <button class="btn-primary" style="width:100%;margin-top:12px" 
-        onclick="printTableBill(${order.id}, '${order.table_no}', ${grand})">
+        onclick="printTableBill(${order.id}, '${order.table_no}')"
         🖨️ Print Bill
       </button>
     `
@@ -1542,38 +1542,4 @@ async function bcConfirmAdd(){
   showToast('Items added ✓', 'success')
   window.bcTempCart = {}
   loadBillCounterPending()
-}
-
-/* ── Print Table Bill ── */
-async function printTableBill(orderId, tableNo, total){
-  // Mark as billed
-  await sbUpdateOrderStatus(orderId, 'billed')
-  
-  // Save to bills database
-  const order = window.billCounterPending.find(o => o.id === orderId)
-  if(order){
-    const items = (order.order_items || []).map(i => ({
-      name: i.item_name, qty: i.quantity,
-      price: i.price, amount: i.price * i.quantity
-    }))
-    const subtotal = items.reduce((s,i) => s + i.amount, 0)
-    const tax = Math.round(subtotal * (taxRate/100))
-    const billTotal = subtotal + tax
-    
-    billCounter++
-    localStorage.setItem('billCounter', billCounter)
-    
-    const bill = {
-      bill_no: `#${String(billCounter).padStart(4,'0')}`,
-      items, subtotal, tax,
-      total: billTotal,
-      currency,
-      table_no: tableNo
-    }
-    await sbSaveBill(bill)
-  }
-  
-  showToast('Bill printed & saved ✓', 'success')
-  loadBillCounterPending()
-  updateDashStats()
 }
