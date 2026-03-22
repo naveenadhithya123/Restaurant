@@ -466,8 +466,9 @@ function showReceipt(){
   openModal('receiptModal')
 setTimeout(() => document.getElementById('printBillBtn').focus(), 350)
 }
-function closeReceipt(){
+function closeReceipt(){ 
   closeModal('receiptModal')
+  document.getElementById('receiptModal').style.zIndex = ''
   document.getElementById('dashboardPage').style.zIndex = ''
 }
 
