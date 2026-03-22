@@ -1234,12 +1234,13 @@ async function loadServerReceived(){
   container.innerHTML = ''
   
   const orders = await sbGetActiveOrders()
-  if(!orders || !orders.length){
+const filteredOrders = (orders || []).filter(o => o.status !== 'bill_pending' && o.status !== 'billed')
+  if(!filteredOrders || !filteredOrders.length){
     container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">No delivered items</p>'
     return
   }
   
-  orders.forEach(order => {
+  filteredOrders.forEach(order => {
     const deliveredItems = (order.order_items || []).filter(i => i.status === 'delivered')
     if(!deliveredItems.length) return
     const card = document.createElement('div')
