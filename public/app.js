@@ -875,10 +875,10 @@ async function sendOTP() {
       errEl.textContent = data.error || 'Failed to send OTP.'
       errEl.style.display = 'block'
     }
-  } catch (_) {
-    errEl.textContent = 'Backend not running. Start node server.js first.'
-    errEl.style.display = 'block'
-  }
+  } } catch (e) {
+  errEl.textContent = 'Failed to send OTP: ' + e.message
+  errEl.style.display = 'block'
+}
 
   btn.textContent = 'Send OTP'
   btn.disabled    = false
