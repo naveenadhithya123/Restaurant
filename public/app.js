@@ -875,7 +875,7 @@ async function sendOTP() {
       errEl.textContent = data.error || 'Failed to send OTP.'
       errEl.style.display = 'block'
     }
-  } } catch (e) {
+  } catch (e) {
   errEl.textContent = 'Failed to send OTP: ' + e.message
   errEl.style.display = 'block'
 }
