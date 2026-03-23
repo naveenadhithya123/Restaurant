@@ -1105,23 +1105,33 @@ async function sendToKitchen(tableNo='', isParcel=false){
     name, qty: data.qty, price: data.price
   }))
 
+  // Always fetch fresh active orders from Supabase before checking
+  const freshOrders = await sbGetActiveOrders()
+  if(freshOrders) activeOrders = freshOrders
+
   // Check if order exists for this table
   let order = activeOrders.find(o => o.table_no === tbl && o.status !== 'billed')
   
   if(!order){
     order = await sbCreateOrder(tbl, items)
     if(order) activeOrders.push(order)
+    else {
+      console.error('sbCreateOrder returned null — check Supabase orders table RLS permissions')
+      showToast('Failed to send order — check Supabase permissions', 'error')
+      return
+    }
   }
 
-  if(order){
-    await sbAddOrderItems(order.id, items, isParcel)
+  const added = await sbAddOrderItems(order.id, items, isParcel)
+  if(added){
     showToast(`Order sent to kitchen for ${tbl} ✓`, 'success')
     serverCart = {}
     if(tableInput) tableInput.value = ''
     updateServerOrders()
     loadServerProducts()
   } else {
-    showToast('Failed to send order', 'error')
+    console.error('sbAddOrderItems returned null — check Supabase order_items table RLS permissions')
+    showToast('Failed to add items — check Supabase permissions', 'error')
   }
 }
 
