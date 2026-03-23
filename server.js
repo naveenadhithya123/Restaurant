@@ -23,8 +23,13 @@ const GMAIL_USER = process.env.GMAIL_USER || "lap100gbfree@gmail.com"
 const GMAIL_PASS = process.env.GMAIL_PASS || "ehjh nmfh odsb shco"
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: GMAIL_USER, pass: GMAIL_PASS }
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: { user: GMAIL_USER, pass: GMAIL_PASS },
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000
 })
 
 /* In-memory OTP store */
