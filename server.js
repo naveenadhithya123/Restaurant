@@ -149,3 +149,9 @@ app.get("*", (req, res) => {
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`✦ Server running on port ${PORT}`))
+
+// Keep server awake on Render free tier
+setInterval(() => {
+  fetch(`https://restaurant-updated-at8o.onrender.com/products`)
+    .catch(() => {}) // silent ping every 14 minutes
+}, 14 * 60 * 1000)
