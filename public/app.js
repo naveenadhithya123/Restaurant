@@ -844,9 +844,13 @@ async function sendOTP() {
   errEl.style.display = 'none'
 
   try {
-    const res  = await fetch(`${BACKEND}/send-otp`, {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000) // 30s timeout
+
+    const res = await fetch(`${BACKEND}/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         email: otpTargetEmail,
         restaurantName: (
@@ -856,6 +860,7 @@ async function sendOTP() {
         )
       })
     })
+    clearTimeout(timeout)
     const data = await res.json()
 
     if (res.ok && data.success) {
@@ -863,26 +868,11 @@ async function sendOTP() {
       document.getElementById('otpSentTo').textContent =
         `OTP sent to ${maskEmail(otpTargetEmail)}. Valid for 10 minutes.`
       document.getElementById('otpError').style.display = 'none'
-      /* Clear 4 OTP boxes */
       for (let i = 0; i < 4; i++) {
         const box = document.getElementById(`otp${i}`)
         if (box) { box.value = ''; box.classList.remove('filled') }
       }
-      openModal('otpModal')
-      setTimeout(() => document.getElementById('otp0').focus(), 350)
-      showToast('OTP sent to your email ✓', 'success')
-    } else {
-      errEl.textContent = data.error || 'Failed to send OTP.'
-      errEl.style.display = 'block'
-    }
-  } catch (e) {
-  errEl.textContent = 'Failed to send OTP: ' + e.message
-  errEl.style.display = 'block'
-}
-
-  btn.textContent = 'Send OTP'
-  btn.disabled    = false
-}
+      open
 
 /* ── OTP box behaviour: auto-advance & backspace ── */
 function otpBoxInput(el, idx) {
