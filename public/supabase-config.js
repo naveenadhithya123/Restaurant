@@ -181,3 +181,78 @@ async function sbGetOrdersByStatus(status) {
     .order('created_at', { ascending: true })
   return error ? null : data
 }
+
+
+
+/* ══════════════════════════════════════
+   REALTIME SUBSCRIPTIONS
+══════════════════════════════════════ */
+function initRealtime() {
+  if (!sb) return
+
+  // Products
+  sb.channel('products-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' },
+      async () => {
+        const data = await sbGetProducts()
+        if (data) {
+          window.products = data
+          if (typeof loadProducts === 'function') loadProducts()
+          if (typeof loadDashProducts === 'function') loadDashProducts()
+          if (typeof loadServerProducts === 'function') loadServerProducts()
+        }
+      })
+    .subscribe()
+
+  // App settings (branding, tax, currency)
+  sb.channel('settings-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' },
+      async () => {
+        const settings = await sbGetAllSettings()
+        if (settings) {
+          if (settings.branding && typeof applyBrandingData === 'function')
+            applyBrandingData(settings.branding)
+          if (settings.taxRate) window.taxRate = parseInt(settings.taxRate)
+          if (settings.currency && typeof setCurrencyVal === 'function')
+            setCurrencyVal(settings.currency)
+        }
+      })
+    .subscribe()
+
+  // Orders
+  sb.channel('orders-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' },
+      () => {
+        if (typeof loadKitchen === 'function') loadKitchen()
+        if (typeof loadCaptain === 'function') loadCaptain()
+        if (typeof loadServerReceived === 'function') loadServerReceived()
+        if (typeof loadBillCounterPending === 'function') loadBillCounterPending()
+      })
+    .subscribe()
+
+  // Order items
+  sb.channel('order-items-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
+      () => {
+        if (typeof loadKitchen === 'function') loadKitchen()
+        if (typeof loadCaptain === 'function') loadCaptain()
+        if (typeof loadServerReceived === 'function') loadServerReceived()
+      })
+    .subscribe()
+
+  // Bills
+  sb.channel('bills-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bills' },
+      async () => {
+        const bills = await sbGetBills()
+        if (bills) {
+          window.billsCache = bills
+          localStorage.setItem('billsCache', JSON.stringify(bills))
+          if (typeof updateDashStats === 'function') updateDashStats()
+          if (typeof renderDatabase === 'function') renderDatabase()
+        }
+      })
+    .subscribe()
+
+  console.log('✦ Realtime subscriptions active')
+}
