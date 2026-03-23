@@ -872,7 +872,25 @@ async function sendOTP() {
         const box = document.getElementById(`otp${i}`)
         if (box) { box.value = ''; box.classList.remove('filled') }
       }
-      open
+      openModal('otpModal')
+      setTimeout(() => document.getElementById('otp0').focus(), 350)
+      showToast('OTP sent to your email ✓', 'success')
+    } else {
+      errEl.textContent = data.error || 'Failed to send OTP.'
+      errEl.style.display = 'block'
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      errEl.textContent = 'Server is waking up — please wait 30 seconds and try again.'
+    } else {
+      errEl.textContent = 'Failed to send OTP: ' + e.message
+    }
+    errEl.style.display = 'block'
+  }
+
+  btn.textContent = 'Send OTP'
+  btn.disabled    = false
+}
 
 /* ── OTP box behaviour: auto-advance & backspace ── */
 function otpBoxInput(el, idx) {
