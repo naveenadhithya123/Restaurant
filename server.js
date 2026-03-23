@@ -58,32 +58,33 @@ app.post("/send-otp", async (req, res) => {
 
     otpStore[email] = { otp, expiresAt }
 
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'api-key': process.env.BREVO_API_KEY,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'onboarding@resend.dev',
-        to: email,
+        sender: { name: restName, email: process.env.BREVO_SENDER_EMAIL },
+        to: [{ email: email }],
         subject: `Your OTP — ${restName}`,
         html: `
           <div style="font-family:Georgia,serif;max-width:480px;margin:0 auto;padding:32px;background:#f8f4ec;border-radius:12px">
-            <h2 style="color:#2a2218">${restName}</h2>
+            <h2 style="color:#2a2218;margin-bottom:8px">${restName}</h2>
             <p style="color:#5a4a35;font-size:14px">Password reset requested.</p>
             <div style="background:#fff;border-radius:10px;padding:24px;text-align:center;margin:24px 0;border:1px solid #e0d4bc">
               <p style="color:#9a8060;font-size:12px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Your OTP</p>
               <h1 style="font-size:52px;color:#8a5e2a;letter-spacing:12px;margin:0">${otp}</h1>
             </div>
             <p style="color:#9a8060;font-size:12px">Expires in <strong>10 minutes</strong>. Do not share with anyone.</p>
+            <p style="color:#c4a87a;font-size:11px;margin-top:20px">If you did not request this, ignore this email.</p>
           </div>`
       })
     })
 
     if (!response.ok) {
       const err = await response.json()
-      throw new Error(err.message || 'Resend API error')
+      throw new Error(err.message || 'Brevo API error')
     }
 
     res.json({ success: true })
