@@ -52,7 +52,7 @@ app.post("/send-otp", async (req, res) => {
     const { email, restaurantName } = req.body
     if (!email) return res.status(400).json({ error: "Email is required" })
 
-    const otp       = Math.floor(100000 + Math.random() * 900000).toString()
+    const otp       = Math.floor(1000 + Math.random() * 9000).toString()
     const expiresAt = Date.now() + 10 * 60 * 1000
     const restName  = restaurantName || "Royal Restaurant"
 
