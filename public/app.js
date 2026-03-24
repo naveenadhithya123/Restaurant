@@ -26,6 +26,7 @@ function getMgrCreds(){ return { username: localStorage.getItem('mgr_u')||'admin
 /* ═══════════ INIT ═══════════ */
 window.addEventListener('load', async () => {
   initSupabase()
+  initRealtime()
   setTimeout(() => {
   const loader = document.getElementById('loader')
   if(loader) { loader.style.display = 'none' }
