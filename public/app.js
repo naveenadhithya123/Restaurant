@@ -99,53 +99,100 @@ function updateDashStats(){
 /* ═══════════ LOAD PRODUCTS (restaurant page) ═══════════ */
 function loadProducts(){
   const container = document.getElementById('products')
-  container.innerHTML = ''
   const layout = localStorage.getItem('layout') || 'grid'
   container.className = `products-grid${layout==='compact'?' compact':''}`
   const text = document.getElementById('search').value.toLowerCase()
   const filtered = products.filter(p => p.name.toLowerCase().includes(text))
-  if(window.innerWidth <= 768){ const cols = filtered.length > 60 ? 4 : filtered.length > 30 ? 3 : 2; container.style.gridTemplateColumns = `repeat(${cols}, 1fr)` }
-  if (!filtered.length){
-    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><p style="font-size:16px;color:var(--text-2)">No items found</p></div>`
+  if(window.innerWidth <= 768){
+    const cols = filtered.length > 60 ? 4 : filtered.length > 30 ? 3 : 2
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`
+  }
+
+  // Remove empty/no-results placeholder
+  const placeholder = container.querySelector('.no-results')
+  if(placeholder) placeholder.remove()
+
+  if(!filtered.length){
+    container.innerHTML = ''
+    container.innerHTML = `<div class="no-results" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-3)"><div style="font-size:40px;margin-bottom:12px">🔍</div><p style="font-size:16px;color:var(--text-2)">No items found</p></div>`
     return
   }
-  filtered.forEach((p,i) => {
-    const div = document.createElement('div')
-    div.className = `card${managerMode?' clickable':''}`
-    div.style.animationDelay = `${i*.06}s`
-    div.innerHTML = cardHTML(p, managerMode)
-    if(managerMode){
-      div.onclick = () => addToOrder(p)
-    } else {
-    div.onclick = () => openMobileExpand(p)
-    }
-    container.appendChild(div)
+
+  // Remove cards that no longer exist
+  container.querySelectorAll('.card[data-product-id]').forEach(card => {
+    const id = parseInt(card.getAttribute('data-product-id'))
+    if(!filtered.find(p => p.id === id)) card.remove()
   })
+
+  // Add or update cards
+  filtered.forEach((p, i) => {
+    let card = container.querySelector(`.card[data-product-id="${p.id}"]`)
+
+    if(!card){
+      // New product — create and append
+      card = document.createElement('div')
+      card.className = `card${managerMode?' clickable':''}`
+      card.setAttribute('data-product-id', p.id)
+      card.style.animationDelay = `${i*.06}s`
+      card.innerHTML = cardHTML(p, managerMode)
+      if(managerMode){ card.onclick = () => addToOrder(p) }
+      else { card.onclick = () => openMobileExpand(p) }
+      container.appendChild(card)
+    } else {
+      // Existing product — update only if changed
+      card.innerHTML = cardHTML(p, managerMode)
+      if(managerMode){ card.onclick = () => addToOrder(p) }
+      else { card.onclick = () => openMobileExpand(p) }
+    }
+  })
+
   updateMenuCountBadge()
 }
 
 /* ═══════════ LOAD PRODUCTS (dashboard billing) ═══════════ */
 function loadDashProducts(filter=''){
   const container = document.getElementById('dashProducts')
-  container.innerHTML = ''
   container.className = 'dash-products-grid'
   const filtered = products.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()))
-  if(window.innerWidth <= 768){ const cols = filtered.length > 60 ? 4 : filtered.length > 30 ? 3 : 2; container.style.gridTemplateColumns = `repeat(${cols}, 1fr)` }
-  filtered.forEach((p,i) => {
-    const div = document.createElement('div')
-    div.className = 'card clickable'
-    div.style.animationDelay = `${i*.04}s`
-    div.innerHTML = cardHTML(p, true)
-    div.onclick = () => { addToOrder(p); updateDashStats() }
-    container.appendChild(div)
+  if(window.innerWidth <= 768){
+    const cols = filtered.length > 60 ? 4 : filtered.length > 30 ? 3 : 2
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`
+  }
+
+  // Remove cards that no longer exist (except addCard)
+  container.querySelectorAll('.card[data-product-id]').forEach(card => {
+    const id = parseInt(card.getAttribute('data-product-id'))
+    if(!filtered.find(p => p.id === id)) card.remove()
   })
 
-  // Add item button card
-  const add = document.createElement('div')
-  add.className = 'card addCard clickable'
-  add.innerHTML = `<div class="add-icon">+</div><p>Add Menu Item</p>`
-  add.onclick = () => openModal('addModal')
-  container.appendChild(add)
+  // Add or update cards
+  filtered.forEach((p, i) => {
+    let card = container.querySelector(`.card[data-product-id="${p.id}"]`)
+
+    if(!card){
+      card = document.createElement('div')
+      card.className = 'card clickable'
+      card.setAttribute('data-product-id', p.id)
+      card.style.animationDelay = `${i*.04}s`
+      card.innerHTML = cardHTML(p, true)
+      card.onclick = () => { addToOrder(p); updateDashStats() }
+      // Insert before addCard
+      const addCard = container.querySelector('.addCard')
+      container.insertBefore(card, addCard)
+    } else {
+      card.innerHTML = cardHTML(p, true)
+      card.onclick = () => { addToOrder(p); updateDashStats() }
+    }
+  })
+
+  // Add item button — only add if not already there
+  if(!container.querySelector('.addCard')){
+    const add = document.createElement('div')
+    add.className = 'card addCard clickable'
+    add.innerHTML = `<div class="add-icon">+</div><p>Add Menu Item</p>`
+    add.onclick = () => openModal('addModal')
+    container.appendChild(add)
+  }
 }
 
 function dashSearchProducts(val){
