@@ -1151,40 +1151,74 @@ let activeOrders = []
 async function loadKitchen(){
   const container = document.getElementById('kitchenCards')
   if(!container) return
-  container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">Loading...</p>'
-  
+
   const orders = await sbGetActiveOrders()
-  if(!orders || !orders.length){
-    container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">No pending orders</p>'
+  activeOrders = orders || []
+
+  const pendingOrders = activeOrders.filter(o =>
+    (o.order_items || []).some(i => i.status === 'pending')
+  )
+
+  // Remove cards that no longer exist
+  container.querySelectorAll('.kitchen-card').forEach(card => {
+    const id = parseInt(card.id.replace('kitchen-card-', ''))
+    const still = pendingOrders.find(o => o.id === id)
+    if(!still) card.remove()
+  })
+
+  if(!pendingOrders.length){
+    if(!container.querySelector('.kitchen-empty')){
+      container.innerHTML = '<p class="kitchen-empty" style="color:var(--text-3);text-align:center;padding:40px">No pending orders</p>'
+    }
     return
   }
-  
-  activeOrders = orders
-  container.innerHTML = ''
-  
-  orders.forEach(order => {
+
+  // Remove empty placeholder if orders exist
+  const empty = container.querySelector('.kitchen-empty')
+  if(empty) empty.remove()
+
+  pendingOrders.forEach(order => {
     const pendingItems = (order.order_items || []).filter(i => i.status === 'pending')
     if(!pendingItems.length) return
-    
-    const card = document.createElement('div')
-    card.className = 'kitchen-card'
-    card.id = `kitchen-card-${order.id}`
-    
-    const itemsHTML = pendingItems.map(item => `
-      <div class="kitchen-item-row" id="kitem-${item.id}">
-        <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
-        <button class="btn-complete" onclick="kitchenItemDone(${item.id}, ${order.id})">Done ✓</button>
-      </div>
-    `).join('')
-    
-    card.innerHTML = `
-      <div class="kitchen-card-header">
-        <span class="kitchen-table-badge">Table ${order.table_no}</span>
-        <small style="color:var(--text-3)">${new Date(order.created_at).toLocaleTimeString('en-IN')}</small>
-      </div>
-      ${itemsHTML}
-    `
-    container.appendChild(card)
+
+    let card = document.getElementById(`kitchen-card-${order.id}`)
+
+    // Add new card if it doesn't exist
+    if(!card){
+      card = document.createElement('div')
+      card.className = 'kitchen-card'
+      card.id = `kitchen-card-${order.id}`
+      card.innerHTML = `
+        <div class="kitchen-card-header">
+          <span class="kitchen-table-badge">Table ${order.table_no}</span>
+          <small style="color:var(--text-3)">${new Date(order.created_at).toLocaleTimeString('en-IN')}</small>
+        </div>
+        <div class="kitchen-items-list"></div>
+      `
+      container.appendChild(card)
+    }
+
+    const list = card.querySelector('.kitchen-items-list')
+
+    // Remove items that are no longer pending
+    list.querySelectorAll('.kitchen-item-row').forEach(row => {
+      const id = parseInt(row.id.replace('kitem-', ''))
+      if(!pendingItems.find(i => i.id === id)) row.remove()
+    })
+
+    // Add new items that don't exist yet
+    pendingItems.forEach(item => {
+      if(!document.getElementById(`kitem-${item.id}`)){
+        const row = document.createElement('div')
+        row.className = 'kitchen-item-row'
+        row.id = `kitem-${item.id}`
+        row.innerHTML = `
+          <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
+          <button class="btn-complete" onclick="kitchenItemDone(${item.id}, ${order.id})">Done ✓</button>
+        `
+        list.appendChild(row)
+      }
+    })
   })
 }
 
