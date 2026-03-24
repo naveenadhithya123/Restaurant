@@ -1446,21 +1446,27 @@ async function printTableBill(orderId, tableNo){
 }
 
 /* ── Auto refresh every 15 seconds ── */
-function startKitchenRefresh(){
-  if(kitchenRefreshTimer) clearInterval(kitchenRefreshTimer)
-  kitchenRefreshTimer = setInterval(loadKitchen, 15000)
-}
-function startCaptainRefresh(){
-  if(captainRefreshTimer) clearInterval(captainRefreshTimer)
-  captainRefreshTimer = setInterval(loadCaptain, 15000)
-}
-function startServerRefresh(){
-  if(serverRefreshTimer) clearInterval(serverRefreshTimer)
-  serverRefreshTimer = setInterval(() => {
-    loadServerReceived()
-    updateServerBadge()
-  }, 15000)
-}
+// function startKitchenRefresh(){
+//   if(kitchenRefreshTimer) clearInterval(kitchenRefreshTimer)
+//   kitchenRefreshTimer = setInterval(loadKitchen, 15000)
+// }
+// function startCaptainRefresh(){
+//   if(captainRefreshTimer) clearInterval(captainRefreshTimer)
+//   captainRefreshTimer = setInterval(loadCaptain, 15000)
+// }
+// function startServerRefresh(){
+//   if(serverRefreshTimer) clearInterval(serverRefreshTimer)
+//   serverRefreshTimer = setInterval(() => {
+//     loadServerReceived()
+//     updateServerBadge()
+//   }, 15000)
+// }
+
+
+function startKitchenRefresh(){}
+function startCaptainRefresh(){}
+function startServerRefresh(){}
+
 
 function switchBillingTab(tab){
   document.querySelectorAll('.billing-tabs .server-tab').forEach(b => b.classList.remove('active'))
