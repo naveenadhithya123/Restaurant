@@ -1243,18 +1243,29 @@ async function kitchenItemDone(itemId, orderId){
 async function loadCaptain(){
   const tbody = document.getElementById('captainTableBody')
   if(!tbody) return
-  
+
   const orders = await sbGetActiveOrders()
   if(!orders){ tbody.innerHTML = ''; return }
-  
-  tbody.innerHTML = ''
-  let hasItems = false
-  
+
+  // Collect all current ready item ids
+  const readyItems = []
   orders.forEach(order => {
-    const readyItems = (order.order_items || []).filter(i => i.status === 'ready')
-    readyItems.forEach(item => {
-      hasItems = true
+    (order.order_items || []).filter(i => i.status === 'ready').forEach(item => {
+      readyItems.push({ item, order })
+    })
+  })
+
+  // Remove rows that no longer exist
+  tbody.querySelectorAll('tr[data-item-id]').forEach(row => {
+    const id = parseInt(row.getAttribute('data-item-id'))
+    if(!readyItems.find(r => r.item.id === id)) row.remove()
+  })
+
+  // Add new rows that don't exist yet
+  readyItems.forEach(({ item, order }) => {
+    if(!tbody.querySelector(`tr[data-item-id="${item.id}"]`)){
       const tr = document.createElement('tr')
+      tr.setAttribute('data-item-id', item.id)
       tr.innerHTML = `
         <td><strong style="color:var(--gold)">Table ${order.table_no}</strong></td>
         <td>${item.item_name}${item.is_parcel ? ' <span class="parcel-tag">📦</span>' : ''}</td>
@@ -1263,11 +1274,17 @@ async function loadCaptain(){
         </td>
       `
       tbody.appendChild(tr)
-    })
+    }
   })
-  
-  if(!hasItems){
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-3);padding:40px">No items ready</td></tr>'
+
+  // Show empty message if no items
+  if(!readyItems.length && !tbody.querySelector('tr[data-item-id]')){
+    if(!tbody.querySelector('.captain-empty')){
+      tbody.innerHTML = '<tr class="captain-empty"><td colspan="3" style="text-align:center;color:var(--text-3);padding:40px">No items ready</td></tr>'
+    }
+  } else {
+    const empty = tbody.querySelector('.captain-empty')
+    if(empty) empty.remove()
   }
 }
 
@@ -1284,39 +1301,69 @@ async function captainSend(itemId, orderId){
 async function loadServerReceived(){
   const container = document.getElementById('serverReceivedCards')
   if(!container) return
-  container.innerHTML = ''
-  
+
   const orders = await sbGetActiveOrders()
-const filteredOrders = (orders || []).filter(o => o.status !== 'bill_pending' && o.status !== 'billed')
-  if(!filteredOrders || !filteredOrders.length){
-    container.innerHTML = '<p style="color:var(--text-3);text-align:center;padding:40px">No delivered items</p>'
+  const filteredOrders = (orders || []).filter(o => o.status !== 'bill_pending' && o.status !== 'billed')
+
+  // Remove cards that no longer exist
+  container.querySelectorAll('.server-received-card').forEach(card => {
+    const id = parseInt(card.getAttribute('data-order-id'))
+    const still = filteredOrders.find(o => o.id === id)
+    if(!still) card.remove()
+  })
+
+  if(!filteredOrders.length){
+    if(!container.querySelector('.server-empty')){
+      container.innerHTML = '<p class="server-empty" style="color:var(--text-3);text-align:center;padding:40px">No delivered items</p>'
+    }
     return
   }
-  
+
+  const empty = container.querySelector('.server-empty')
+  if(empty) empty.remove()
+
   filteredOrders.forEach(order => {
     const deliveredItems = (order.order_items || []).filter(i => i.status === 'delivered')
     if(!deliveredItems.length) return
-    const card = document.createElement('div')
-    card.className = 'server-received-card'
-    card.setAttribute('data-order-id', order.id)
-    
-    const itemsHTML = deliveredItems.map(item => `
-      <div class="server-received-item">
-        <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
-      </div>
-    `).join('')
-    
-    card.innerHTML = `
-      <h3>Table ${order.table_no}</h3>
-      ${itemsHTML}
-      <button class="send-to-bill-btn" onclick="sendToBillCounter(${order.id})">
-        🧾 Send to Bill Counter
-      </button>
-    `
-    container.appendChild(card)
+
+    let card = container.querySelector(`.server-received-card[data-order-id="${order.id}"]`)
+
+    // Add new card if doesn't exist
+    if(!card){
+      card = document.createElement('div')
+      card.className = 'server-received-card'
+      card.setAttribute('data-order-id', order.id)
+      card.innerHTML = `
+        <div class="server-received-header">
+          <span class="kitchen-table-badge">Table ${order.table_no}</span>
+        </div>
+        <div class="server-received-items"></div>
+      `
+      container.appendChild(card)
+    }
+
+    const list = card.querySelector('.server-received-items')
+
+    // Remove items no longer delivered
+    list.querySelectorAll('[data-sitem-id]').forEach(row => {
+      const id = parseInt(row.getAttribute('data-sitem-id'))
+      if(!deliveredItems.find(i => i.id === id)) row.remove()
+    })
+
+    // Add new delivered items
+    deliveredItems.forEach(item => {
+      if(!list.querySelector(`[data-sitem-id="${item.id}"]`)){
+        const row = document.createElement('div')
+        row.setAttribute('data-sitem-id', item.id)
+        row.className = 'kitchen-item-row'
+        row.innerHTML = `
+          <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
+          <span style="color:var(--gold);font-size:12px">Ready ✓</span>
+        `
+        list.appendChild(row)
+      }
+    })
   })
-  
-  updateServerBadge()
 }
 
 /* ── Send to Bill Counter ── */
