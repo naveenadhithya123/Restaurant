@@ -190,10 +190,15 @@ async function sbGetOrdersByStatus(status) {
 function initRealtime() {
   if (!sb) return
 
+  function debounce(fn, delay = 300) {
+    let timer
+    return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay) }
+  }
+
   // Products
   sb.channel('products-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'products' },
-      async () => {
+      debounce(async () => {
         const data = await sbGetProducts()
         if (data) {
           window.products = data
@@ -201,13 +206,13 @@ function initRealtime() {
           if (typeof loadDashProducts === 'function') loadDashProducts()
           if (typeof loadServerProducts === 'function') loadServerProducts()
         }
-      })
+      }))
     .subscribe()
 
-  // App settings (branding, tax, currency)
+  // App settings
   sb.channel('settings-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' },
-      async () => {
+      debounce(async () => {
         const settings = await sbGetAllSettings()
         if (settings) {
           if (settings.branding && typeof applyBrandingData === 'function')
@@ -216,34 +221,34 @@ function initRealtime() {
           if (settings.currency && typeof setCurrencyVal === 'function')
             setCurrencyVal(settings.currency)
         }
-      })
+      }))
     .subscribe()
 
   // Orders
   sb.channel('orders-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' },
-      () => {
+      debounce(() => {
         if (typeof loadKitchen === 'function') loadKitchen()
         if (typeof loadCaptain === 'function') loadCaptain()
         if (typeof loadServerReceived === 'function') loadServerReceived()
         if (typeof loadBillCounterPending === 'function') loadBillCounterPending()
-      })
+      }))
     .subscribe()
 
   // Order items
   sb.channel('order-items-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
-      () => {
+      debounce(() => {
         if (typeof loadKitchen === 'function') loadKitchen()
         if (typeof loadCaptain === 'function') loadCaptain()
         if (typeof loadServerReceived === 'function') loadServerReceived()
-      })
+      }))
     .subscribe()
 
   // Bills
   sb.channel('bills-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bills' },
-      async () => {
+      debounce(async () => {
         const bills = await sbGetBills()
         if (bills) {
           window.billsCache = bills
@@ -251,7 +256,7 @@ function initRealtime() {
           if (typeof updateDashStats === 'function') updateDashStats()
           if (typeof renderDatabase === 'function') renderDatabase()
         }
-      })
+      }))
     .subscribe()
 
   console.log('✦ Realtime subscriptions active')
