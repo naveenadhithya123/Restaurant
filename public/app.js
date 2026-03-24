@@ -1355,14 +1355,14 @@ async function loadServerReceived(){
   // Remove cards that no longer exist
   container.querySelectorAll('.server-received-card').forEach(card => {
     const id = parseInt(card.getAttribute('data-order-id'))
-    const still = filteredOrders.find(o => o.id === id)
-    if(!still) card.remove()
+    if(!filteredOrders.find(o => o.id === id)) card.remove()
   })
 
   if(!filteredOrders.length){
     if(!container.querySelector('.server-empty')){
       container.innerHTML = '<p class="server-empty" style="color:var(--text-3);text-align:center;padding:40px">No delivered items</p>'
     }
+    updateServerBadge()
     return
   }
 
@@ -1375,16 +1375,16 @@ async function loadServerReceived(){
 
     let card = container.querySelector(`.server-received-card[data-order-id="${order.id}"]`)
 
-    // Add new card if doesn't exist
     if(!card){
       card = document.createElement('div')
       card.className = 'server-received-card'
       card.setAttribute('data-order-id', order.id)
       card.innerHTML = `
-        <div class="server-received-header">
-          <span class="kitchen-table-badge">Table ${order.table_no}</span>
-        </div>
+        <h3>Table ${order.table_no}</h3>
         <div class="server-received-items"></div>
+        <button class="send-to-bill-btn" onclick="sendToBillCounter(${order.id})">
+          🧾 Send to Bill Counter
+        </button>
       `
       container.appendChild(card)
     }
@@ -1401,16 +1401,15 @@ async function loadServerReceived(){
     deliveredItems.forEach(item => {
       if(!list.querySelector(`[data-sitem-id="${item.id}"]`)){
         const row = document.createElement('div')
+        row.className = 'server-received-item'
         row.setAttribute('data-sitem-id', item.id)
-        row.className = 'kitchen-item-row'
-        row.innerHTML = `
-          <span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>
-          <span style="color:var(--gold);font-size:12px">Ready ✓</span>
-        `
+        row.innerHTML = `<span>${item.quantity}× ${item.item_name}${item.is_parcel ? ' 📦' : ''}</span>`
         list.appendChild(row)
       }
     })
   })
+
+  updateServerBadge()
 }
 
 /* ── Send to Bill Counter ── */
