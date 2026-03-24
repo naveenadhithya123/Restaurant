@@ -190,73 +190,111 @@ async function sbGetOrdersByStatus(status) {
 function initRealtime() {
   if (!sb) return
 
-  function debounce(fn, delay = 300) {
-    let timer
-    return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay) }
-  }
-
-  // Products
+  // Products — update only changed item
   sb.channel('products-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'products' },
-      debounce(async () => {
-        const data = await sbGetProducts()
-        if (data) {
-          window.products = data
+      (payload) => {
+        setTimeout(() => {
+          if (payload.eventType === 'INSERT') {
+            window.products.push(payload.new)
+          }
+          if (payload.eventType === 'UPDATE') {
+            window.products = window.products.map(p =>
+              p.id === payload.new.id ? payload.new : p
+            )
+          }
+          if (payload.eventType === 'DELETE') {
+            window.products = window.products.filter(p =>
+              p.id !== payload.old.id
+            )
+          }
           if (typeof loadProducts === 'function') loadProducts()
           if (typeof loadDashProducts === 'function') loadDashProducts()
           if (typeof loadServerProducts === 'function') loadServerProducts()
-        }
-      }))
+        }, 100)
+      })
     .subscribe()
 
   // App settings
   sb.channel('settings-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' },
-      debounce(async () => {
-        const settings = await sbGetAllSettings()
-        if (settings) {
-          if (settings.branding && typeof applyBrandingData === 'function')
-            applyBrandingData(settings.branding)
-          if (settings.taxRate) window.taxRate = parseInt(settings.taxRate)
-          if (settings.currency && typeof setCurrencyVal === 'function')
-            setCurrencyVal(settings.currency)
-        }
-      }))
+      (payload) => {
+        setTimeout(async () => {
+          const settings = await sbGetAllSettings()
+          if (settings) {
+            if (settings.branding && typeof applyBrandingData === 'function')
+              applyBrandingData(settings.branding)
+            if (settings.taxRate) window.taxRate = parseInt(settings.taxRate)
+            if (settings.currency && typeof setCurrencyVal === 'function')
+              setCurrencyVal(settings.currency)
+          }
+        }, 100)
+      })
     .subscribe()
 
   // Orders
   sb.channel('orders-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' },
-      debounce(() => {
-        if (typeof loadKitchen === 'function') loadKitchen()
-        if (typeof loadCaptain === 'function') loadCaptain()
-        if (typeof loadServerReceived === 'function') loadServerReceived()
-        if (typeof loadBillCounterPending === 'function') loadBillCounterPending()
-      }))
+      (payload) => {
+        setTimeout(() => {
+          if (payload.eventType === 'INSERT') {
+            window.activeOrders = window.activeOrders || []
+            window.activeOrders.push(payload.new)
+          }
+          if (payload.eventType === 'UPDATE') {
+            window.activeOrders = (window.activeOrders || []).map(o =>
+              o.id === payload.new.id ? payload.new : o
+            )
+          }
+          if (payload.eventType === 'DELETE') {
+            window.activeOrders = (window.activeOrders || []).filter(o =>
+              o.id !== payload.old.id
+            )
+          }
+          if (typeof loadKitchen === 'function') loadKitchen()
+          if (typeof loadCaptain === 'function') loadCaptain()
+          if (typeof loadServerReceived === 'function') loadServerReceived()
+          if (typeof loadBillCounterPending === 'function') loadBillCounterPending()
+        }, 100)
+      })
     .subscribe()
 
   // Order items
   sb.channel('order-items-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
-      debounce(() => {
-        if (typeof loadKitchen === 'function') loadKitchen()
-        if (typeof loadCaptain === 'function') loadCaptain()
-        if (typeof loadServerReceived === 'function') loadServerReceived()
-      }))
+      (payload) => {
+        setTimeout(() => {
+          if (typeof loadKitchen === 'function') loadKitchen()
+          if (typeof loadCaptain === 'function') loadCaptain()
+          if (typeof loadServerReceived === 'function') loadServerReceived()
+        }, 100)
+      })
     .subscribe()
 
   // Bills
   sb.channel('bills-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bills' },
-      debounce(async () => {
-        const bills = await sbGetBills()
-        if (bills) {
-          window.billsCache = bills
-          localStorage.setItem('billsCache', JSON.stringify(bills))
+      (payload) => {
+        setTimeout(() => {
+          if (payload.eventType === 'INSERT') {
+            window.billsCache = window.billsCache || []
+            window.billsCache.unshift(payload.new)
+          }
+          if (payload.eventType === 'UPDATE') {
+            window.billsCache = (window.billsCache || []).map(b =>
+              b.id === payload.new.id ? payload.new : b
+            )
+          }
+          if (payload.eventType === 'DELETE') {
+            window.billsCache = (window.billsCache || []).filter(b =>
+              b.id !== payload.old.id
+            )
+          }
+          localStorage.setItem('billsCache', JSON.stringify(window.billsCache))
           if (typeof updateDashStats === 'function') updateDashStats()
           if (typeof renderDatabase === 'function') renderDatabase()
-        }
-      }))
+        }, 100)
+      })
     .subscribe()
 
   console.log('✦ Realtime subscriptions active')
