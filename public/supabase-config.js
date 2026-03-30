@@ -4,8 +4,9 @@
    from: Supabase → Project Settings → API
 ============================================================ */
 
-const SUPABASE_URL      = 'https://kqsrgxnfuzwangumjvfv.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtxc3JneG5mdXp3YW5ndW1qdmZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTg1NzgsImV4cCI6MjA4OTI3NDU3OH0.roW2bg83F9Nu8Gu2RhN9hlPctweoI_htliLqEJKoN_Y'
+const SUPABASE_URL             = 'https://lmjhkkuuxcfjwjgsbfst.supabase.co'
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_B8tQzMjnSwx2wKlI53_Drw_R3aj-edJ'
+const SUPABASE_ANON_KEY        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxtamhra3V1eGNmandqZ3NiZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NzU3MzksImV4cCI6MjA5MDQ1MTczOX0.iVW9NuWGZyGa_IZqTlKgeqFCbLJi9Y8LB9v49Q3LznQ'
 
 /* ── Cloudinary config ── */
 const CLOUDINARY_CLOUD  = 'drsrwnoxq'
@@ -15,7 +16,7 @@ let sb = null
 
 function initSupabase() {
   if (typeof window.supabase !== 'undefined' && SUPABASE_URL.startsWith('https://')) {
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
     console.log('✦ Supabase connected')
     return true
   }
